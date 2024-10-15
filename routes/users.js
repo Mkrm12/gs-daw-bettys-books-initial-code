@@ -3,13 +3,14 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+// Middleware to redirect if the user is not logged in
 const redirectLogin = (req, res, next) => {
-    if (!req.session.userId ) {
-      res.redirect('./login') // redirect to the login page
-    } else { 
-        next (); // move to the next middleware function
-    } 
-}
+    if (!req.session.userId) {
+        res.redirect('./login'); // redirect to the login page
+    } else {
+        next(); // move to the next middleware function
+    }
+};
 
 // Render the registration page
 router.get('/register', function (req, res, next) {
@@ -20,7 +21,7 @@ router.get('/register', function (req, res, next) {
 router.post('/registered', function (req, res, next) {
     const plainPassword = req.body.password;
 
-    bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
+    bcrypt.hash(plainPassword, saltRounds, function (err, hashedPassword) {
         if (err) {
             return next(err);
         }
@@ -49,7 +50,6 @@ router.post('/loggedin', function (req, res, next) {
     const username = req.body.username;
     const plainPassword = req.body.password;
 
-
     // Fetch user by username
     const query = 'SELECT hashed_password FROM users WHERE username = ?';
     db.query(query, [username], (err, result) => {
@@ -60,7 +60,7 @@ router.post('/loggedin', function (req, res, next) {
         const hashedPassword = result[0].hashed_password;
 
         // Compare the password entered by the user with the hashed password from the DB
-        bcrypt.compare(plainPassword, hashedPassword, function(err, match) {
+        bcrypt.compare(plainPassword, hashedPassword, function (err, match) {
             if (err) {
                 return next(err);
             }
@@ -77,13 +77,23 @@ router.post('/loggedin', function (req, res, next) {
 });
 
 // List users (without passwords)
-router.get('/userList', redirectLogin, function(req, res, next) {
+router.get('/userList', redirectLogin, function (req, res, next) {
     let sqlquery = "SELECT username, first_name, last_name, email FROM users"; // query to get users without passwords
     db.query(sqlquery, (err, result) => {
         if (err) {
             return next(err); // handle error
         }
         res.render("userList.ejs", { users: result }); // pass users to the template
+    });
+});
+
+// Handle logout logic
+router.get('/logout', redirectLogin, (req, res) => {
+    req.session.destroy(err => {
+        if (err) {
+            return res.redirect('index.ejs'); // Redirect to home if there's an error
+        }
+        res.redirect('/'); // Redirect to landing page after successful logout
     });
 });
 

@@ -1,21 +1,22 @@
 <!doctype html>
 <html>
-  <head>
+<head>
     <title>Welcome to <%= shopData.shopName %></title>
     <link rel="stylesheet" type="text/css" href="/main.css" />
-  </head>
-  <body>
+</head>
+<body>
     <h1>Welcome to <%= shopData.shopName %></h1>
-    <p><a href="/about">About <%= shopData.shopName %></a></p>
-    <p><a href="/books/search">Search for books</a></p>
-    <p><a href="/books/addbook">Add a new book</a></p>
-    <p><a href="/books/list">List books</a></p>
-    <p><a href="/books/bargainbooks">Bargain books</a></p>
-    <p><a href="/users/register">Register with us</a></p>
-    <p><a href="/users/userList">List users</a></p>
-    
-    <% if (typeof user !== 'undefined' && user) { %>
-      <p><a href="/users/logout">Logout</a></p>
+    <% if (user) { %>
+        <p><a href="/users/logout">Logout</a></p>
+    <% } else { %>
+        <p><a href="/users/login">Login</a></p>
     <% } %>
-  </body>
+    <p><a href="about">About <%= shopData.shopName %></a></p>
+    <p><a href="books/search">Search for books</a></p>
+    <p><a href="books/addbook">Add a new book</a></p>
+    <p><a href="books/list">List books</a></p>
+    <p><a href="books/bargainbooks">Bargain books</a></p>
+    <p><a href="users/register">Register with us</a></p>
+    <p><a href="users/userList">List users</a></p>
+</body>
 </html>

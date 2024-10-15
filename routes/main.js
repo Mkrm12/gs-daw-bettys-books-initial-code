@@ -24,14 +24,6 @@ router.get('/about',function(req, res, next){
     res.render('about.ejs')
 })
 
-router.get('/logout', redirectLogin, (req,res) => {
-    req.session.destroy(err => {
-    if (err) {
-      return res.redirect('landing.ejs')
-    }
-    res.send('you are now logged out. <a href='+'./'+'>Home</a>');
-    })
-})
 
 
 // Export the router object so index.js can access it
