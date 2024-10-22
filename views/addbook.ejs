@@ -1,16 +1,66 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Add book to <%=shopData.shopName%></title>
-    <link rel="stylesheet"  type="text/css" href="/main.css" />
-  </head>
-  <body>
-    <h1><%=shopData.shopName%>: Add book</h1>
-    <form method="POST" action="/books/bookadded">
-        <p>Book name: <input id="name" type="text" name="name" value="" /></p>
-        <p>Price: <input id="price" type="text" name="price" value="" /></p>
-        <input type="submit" value="Add Book" />
-      </form>
-  </body>
-</html>
+<head>
+    <title>Add book to <%= shopData.shopName %></title>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+    <script>
+        function validateForm(event) {
+            let isValid = true;
+            const name = document.getElementById('name');
+            const price = document.getElementById('price');
 
+            // Clear previous error messages
+            document.querySelectorAll('.error').forEach(e => e.innerText = '');
+
+            // Validate Book Name
+            if (name.value.trim() === '') {
+                document.getElementById('name-error').innerText = 'Book name is required';
+                isValid = false;
+            } else if (!/^[a-zA-Z0-9 ]+$/.test(name.value)) {
+                document.getElementById('name-error').innerText = 'Book name must only contain letters and numbers';
+                isValid = false;
+            } else if (name.value.length > 100) {
+                document.getElementById('name-error').innerText = 'Book name must be less than 100 characters';
+                isValid = false;
+            }
+
+            // Validate Price
+            const pricePattern = /^\d+(\.\d{1,2})?$/;
+            if (price.value.trim() === '') {
+                document.getElementById('price-error').innerText = 'Price is required';
+                isValid = false;
+            } else if (!pricePattern.test(price.value)) {
+                document.getElementById('price-error').innerText = 'Price must be a valid number with up to two decimal places';
+                isValid = false;
+            } else if (parseFloat(price.value) < 0 || parseFloat(price.value) > 99999999) {
+                document.getElementById('price-error').innerText = 'Price must be between 0 and 99,999,999';
+                isValid = false;
+            }
+
+            // Prevent form submission if not valid
+            if (!isValid) {
+                event.preventDefault();
+            }
+        }
+
+        // Attach validateForm to form submission
+        window.onload = function() {
+            document.getElementById('add-book-form').addEventListener('submit', validateForm);
+        };
+    </script>
+</head>
+<body>
+    <h1>Add Book to <%= shopData.shopName %></h1>
+    <form id="add-book-form" method="POST" action="/books/bookadded">
+        <p>Book name: <input id="name" type="text" name="name" value="<%= previousData.name || '' %>"/></p>
+        <p style="color: red;" class="error" id="name-error"></p>
+
+        <p>Price: <input id="price" type="text" name="price" value="<%= previousData.price || '' %>"/></p>
+        <p style="color: red;" class="error" id="price-error"></p>
+
+        <input type="submit" value="Add Book" />
+    </form>
+
+    <p>Want to go back? <a href="/">Home</a></p>
+</body>
+</html>

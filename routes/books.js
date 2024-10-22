@@ -37,23 +37,51 @@ router.get('/list', function(req, res, next) {
      })
 })
 
-router.get('/addbook', redirectLogin, function (req, res, next) {
-    res.render('addbook.ejs')
-})
 
-router.post('/bookadded', function (req, res, next) {
-    // saving data in database
-    let sqlquery = "INSERT INTO books (name, price) VALUES (?,?)"
-    // execute sql query
-    let newrecord = [req.body.name, req.body.price]
+
+
+const { check, validationResult } = require('express-validator');
+
+// Render the Add Book page
+router.get('/addbook', redirectLogin, function (req, res, next) {
+    res.render('addbook.ejs', { errors: [], previousData: {} });
+});
+
+// Handle the book addition
+router.post('/bookadded', [
+    check('name')
+        .isAlphanumeric().withMessage('Book name must only contain letters and numbers.')
+        .isLength({ min: 1, max: 100 }).withMessage('Book name must be between 1 and 100 characters long.')
+        .trim()
+        .escape(),
+    check('price')
+        .matches(/^\d+(\.\d{1,2})?$/).withMessage('Price must be a valid number with up to two decimal places and cannot contain letters or symbols.')
+        .isFloat({ min: 0, max: 99999999 }).withMessage('Price must be between 0 and 99,999,999.')
+], (req, res, next) => {
+    const errors = validationResult(req);
+    
+    if (!errors.isEmpty()) {
+        // Render the add book page with errors and previous input
+        return res.render('addbook.ejs', { 
+            errors: errors.array(), 
+            previousData: req.body 
+        });
+    }
+
+    // Saving data in the database
+    let sqlquery = "INSERT INTO books (name, price) VALUES (?, ?)";
+    let newrecord = [req.body.name, req.body.price];
     db.query(sqlquery, newrecord, (err, result) => {
         if (err) {
-            next(err)
+            return next(err);
         }
-        else
-            res.send(' This book is added to database, name: '+ req.body.name + ' price '+ req.body.price)
-    })
-}) 
+        res.send('This book has been added to the database, name: ' + req.body.name + ' price: ' + req.body.price);
+    });
+});
+
+
+
+
 
 router.get('/bargainbooks', function(req, res, next) {
     let sqlquery = "SELECT * FROM books WHERE price < 20"

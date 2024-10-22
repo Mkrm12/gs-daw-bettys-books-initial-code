@@ -3,6 +3,8 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+const { check, validationResult } = require('express-validator');
+
 // Middleware to redirect if the user is not logged in
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
@@ -12,16 +14,43 @@ const redirectLogin = (req, res, next) => {
     }
 };
 
+
+
+
+
+
 // Render the registration page
-router.get('/register', function (req, res, next) {
-    res.render('register.ejs');
+router.get('/register', (req, res) => {
+    res.render('register.ejs', { errors: [], previousData: {} });
 });
 
-// Handle registration logic
-router.post('/registered', function (req, res, next) {
+router.post('/registered', [
+    check('email').isEmail().withMessage('Invalid email address'),
+    check('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long'),
+    check('username').notEmpty().withMessage('Username is required'),
+    check('first').notEmpty().withMessage('First name is required'),
+    check('last').notEmpty().withMessage('Last name is required')
+], (req, res, next) => {
+    // Sanitize input fields
+    req.body.first = req.sanitize(req.body.first);
+    req.body.last = req.sanitize(req.body.last);
+    req.body.email = req.sanitize(req.body.email);
+    req.body.username = req.sanitize(req.body.username);
+    req.body.password = req.sanitize(req.body.password);
+
+    const errors = validationResult(req);
+    
+    if (!errors.isEmpty()) {
+        // Pass errors and previous input back to the registration page
+        return res.render('register.ejs', { 
+            errors: errors.array(), 
+            previousData: req.body
+        });
+    }
+
     const plainPassword = req.body.password;
 
-    bcrypt.hash(plainPassword, saltRounds, function (err, hashedPassword) {
+    bcrypt.hash(plainPassword, saltRounds, (err, hashedPassword) => {
         if (err) {
             return next(err);
         }
@@ -35,10 +64,14 @@ router.post('/registered', function (req, res, next) {
                 return next(err);
             }
 
-            res.send('Hello ' + req.body.first + ' ' + req.body.last + ', you are now registered! We will send an email to you at ' + req.body.email + '. <a href="/users/login">Login here</a>');
+            res.send(`Hello ${req.body.first} ${req.body.last}, you are now registered! We will send an email to you at ${req.body.email}. <a href="/users/login">Login here</a>`);
         });
     });
 });
+
+
+
+
 
 // Render the login page
 router.get('/login', function (req, res, next) {

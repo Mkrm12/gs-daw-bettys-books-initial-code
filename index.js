@@ -2,6 +2,7 @@
 var express = require('express');
 var ejs = require('ejs');
 var session = require('express-session');
+var validator = require ('express-validator');
 
 // Import mysql module
 var mysql = require('mysql2');
@@ -9,6 +10,7 @@ var mysql = require('mysql2');
 // Create the express application object
 const app = express();
 const port = 8000;
+const expressSanitizer = require('express-sanitizer');
 
 // Create a session
 app.use(session({
@@ -19,6 +21,10 @@ app.use(session({
         expires: 600000
     }
 }));
+
+// Create an input sanitizer
+app.use(expressSanitizer());
+
 
 // Middleware to make user info available in all templates
 app.use((req, res, next) => {
