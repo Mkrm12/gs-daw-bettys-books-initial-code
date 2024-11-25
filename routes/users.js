@@ -71,6 +71,56 @@ router.post('/registered', [
 
 
 
+// Handle Reset Password Route (GET)
+router.get('/resetpassword', (req, res) => {
+    res.render('resetpassword.ejs', { error: null });
+});
+
+// Handle Reset Password (POST)
+router.post('/resetpassword', (req, res) => {
+    const email = req.body.email;
+    const newPassword = req.body.newPassword;
+
+    // Validate new password length
+    if (newPassword.length < 8) {
+        return res.render('resetpassword.ejs', { error: 'Password must be at least 8 characters long' });
+    }
+
+    // Check if the email exists in the database
+    const query = 'SELECT * FROM users WHERE email = ?';
+    db.query(query, [email], (err, result) => {
+        if (err) {
+            return next(err);
+        }
+
+        if (result.length === 0) {
+            return res.render('resetpassword.ejs', { error: 'No user found with this email' });
+        }
+
+        // Generate new hashed password and update the database
+        const plainPassword = newPassword;
+        bcrypt.hash(plainPassword, saltRounds, (err, hashedPassword) => {
+            if (err) {
+                return next(err);
+            }
+
+            // Update the user's password in the database
+            const updateQuery = 'UPDATE users SET hashed_password = ?, plain_password = ? WHERE email = ?';
+            db.query(updateQuery, [hashedPassword, plainPassword, email], (err, result) => {
+                if (err) {
+                    return next(err);
+                }
+
+                res.send(`
+                    <p>Your password has been reset successfully. You can now log in with your new password.</p>
+                    <p>Already registered? <a href="/users/login">Login here</a></p>
+                `);
+            });
+        });
+    });
+});
+
+
 
 
 // Render the login page

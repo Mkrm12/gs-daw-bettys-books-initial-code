@@ -1,17 +1,57 @@
 <!doctype html>
 <html>
   <head>
-    <title>Welcome to <%=shopData.shopName%></title>
+    <title>Welcome to <%= shopData.shopName %></title>
     <link rel="stylesheet"  type="text/css" href="/main.css" />
   </head>
   <body>
-    
-    <h1><%=shopData.shopName%> Shop</h1>
+    <h1><%= shopData.shopName %> Shop</h1>
     <h2>Here are the books that we sell:</h2>
     <ul>
       <% availableBooks.forEach(function(book) { %>
-        <li><%= book.name %>, £<%=book.price%> </li>
+        <li>
+            <strong><%= book.name %></strong><br />
+            Author: <%= book.author %><br />
+            Price: £<%= book.price %><br />
+            Description: <%= book.description %><br />
+            <strong>Overall Rating: <%= book.rating || 'No Rating Yet' %> stars</strong>
+
+            <h3>Reviews:</h3>
+            <% if (book.reviews && book.reviews.length > 0) { %>
+                <ul>
+                    <% book.reviews.forEach(function(review) { %>
+                        <li>
+                            <strong><%= review.userName %>:</strong> <%= review.comment %><br />
+                            Rating: <%= review.rating %> stars
+                        </li>
+                    <% }) %>
+                </ul>
+            <% } else { %>
+                <p>No reviews yet.</p>
+            <% } %>
+
+            <h4>Leave a review:</h4>
+            <form method="POST" action="/books/review">
+                <input type="hidden" name="bookId" value="<%= book._id %>" />
+                <p>Your Name: <input type="text" name="userName" required /></p>
+                <p>Rating: 
+                    <select name="rating" required>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </p>
+                <p>Comment: <textarea name="comment" required></textarea></p>
+                <input type="submit" value="Post Review" />
+            </form>
+
+            <hr />
+        </li>
       <% }) %>
     </ul>
-    </body>
+
+    <p>Want to go back? <a href="/">Home</a></p>
+  </body>
 </html>

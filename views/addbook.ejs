@@ -8,6 +8,9 @@
             let isValid = true;
             const name = document.getElementById('name');
             const price = document.getElementById('price');
+            const author = document.getElementById('author');
+            const description = document.getElementById('description');
+            const user = document.getElementById('user');
 
             // Clear previous error messages
             document.querySelectorAll('.error').forEach(e => e.innerText = '');
@@ -15,9 +18,6 @@
             // Validate Book Name
             if (name.value.trim() === '') {
                 document.getElementById('name-error').innerText = 'Book name is required';
-                isValid = false;
-            } else if (!/^[a-zA-Z0-9 ]+$/.test(name.value)) {
-                document.getElementById('name-error').innerText = 'Book name must only contain letters and numbers';
                 isValid = false;
             } else if (name.value.length > 100) {
                 document.getElementById('name-error').innerText = 'Book name must be less than 100 characters';
@@ -32,8 +32,23 @@
             } else if (!pricePattern.test(price.value)) {
                 document.getElementById('price-error').innerText = 'Price must be a valid number with up to two decimal places';
                 isValid = false;
-            } else if (parseFloat(price.value) < 0 || parseFloat(price.value) > 99999999) {
-                document.getElementById('price-error').innerText = 'Price must be between 0 and 99,999,999';
+            }
+
+            // Validate Author
+            if (author.value.trim() === '') {
+                document.getElementById('author-error').innerText = 'Author name is required';
+                isValid = false;
+            }
+
+            // Validate Description
+            if (description.value.trim() === '') {
+                document.getElementById('description-error').innerText = 'Description is required';
+                isValid = false;
+            }
+
+            // Validate User
+            if (user.value.trim() === '') {
+                document.getElementById('user-error').innerText = 'Your name is required';
                 isValid = false;
             }
 
@@ -51,16 +66,34 @@
 </head>
 <body>
     <h1>Add Book to <%= shopData.shopName %></h1>
+    <!-- Ensure the form has the correct POST action -->
     <form id="add-book-form" method="POST" action="/books/bookadded">
-        <p>Book name: <input id="name" type="text" name="name" value="<%= previousData.name || '' %>"/></p>
+        
+        <!-- User Name Field -->
+        <p>Your Name: <input id="user" type="text" name="user" value="<%= previousData.user || '' %>"/></p>
+        <p style="color: red;" class="error" id="user-error"></p>
+
+        <!-- Book Name Field -->
+        <p>Book Name: <input id="name" type="text" name="name" value="<%= previousData.name || '' %>"/></p>
         <p style="color: red;" class="error" id="name-error"></p>
 
+        <!-- Author Field -->
+        <p>Author: <input id="author" type="text" name="author" value="<%= previousData.author || '' %>"/></p>
+        <p style="color: red;" class="error" id="author-error"></p>
+
+        <!-- Price Field -->
         <p>Price: <input id="price" type="text" name="price" value="<%= previousData.price || '' %>"/></p>
         <p style="color: red;" class="error" id="price-error"></p>
 
+        <!-- Description Field -->
+        <p>Description: <textarea id="description" name="description"><%= previousData.description || '' %></textarea></p>
+        <p style="color: red;" class="error" id="description-error"></p>
+
+        <!-- Submit Button -->
         <input type="submit" value="Add Book" />
     </form>
 
+    <!-- Link to go back to Home -->
     <p>Want to go back? <a href="/">Home</a></p>
 </body>
 </html>
