@@ -1,57 +1,131 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to <%= shopData.shopName %></title>
-    <link rel="stylesheet"  type="text/css" href="/main.css" />
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+    <style>
+      .book-box {
+        border: 1px solid #ddd;
+        padding: 16px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .book-title {
+        font-size: 1.5em;
+        margin-bottom: 0.5em;
+      }
+      .book-details p {
+        margin: 0.5em 0;
+      }
+      .review-section {
+        margin-top: 1em;
+      }
+      .review-box {
+        border-top: 1px solid #ccc;
+        padding-top: 1em;
+        margin-top: 1em;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        padding: 10px;
+      }
+      .review-box h4 {
+        font-size: 1.2em;
+        margin-bottom: 0.5em;
+      }
+      .review-item {
+        margin-bottom: 1em;
+        padding: 10px;
+        background-color: #e7e7e7;
+        border-radius: 5px;
+      }
+      .review-item strong {
+        font-weight: bold;
+        font-size: 1.1em;
+      }
+      .rating {
+        color: #f39c12;
+      }
+      select {
+        padding: 5px;
+        font-size: 1em;
+        margin-bottom: 10px;
+      }
+      textarea {
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+      }
+    </style>
   </head>
   <body>
     <h1><%= shopData.shopName %> Shop</h1>
     <h2>Here are the books that we sell:</h2>
+
+    <p><strong>Welcome <%= firstName %> (UserID: <%= userId %>)</strong></p> <!-- Displaying user info -->
+
     <ul>
       <% availableBooks.forEach(function(book) { %>
-        <li>
-            <strong><%= book.name %></strong><br />
-            Author: <%= book.author %><br />
-            Price: £<%= book.price %><br />
-            Description: <%= book.description %><br />
-            <strong>Overall Rating: <%= book.rating || 'No Rating Yet' %> stars</strong>
-
+        <li class="book-box">
+          <div class="book-title"><%= book.name %></div>
+          <div class="book-details">
+            <p><strong>Author:</strong> <%= book.author %></p>
+            <p><strong>Price:</strong> £<%= book.price %></p>
+            <p><strong>Description:</strong> <%= book.description %></p>
+            <p><strong>Overall Rating:</strong> <%= book.rating || "No Rating Yet" %> stars</p>
+          </div>
+          <div class="review-section">
             <h3>Reviews:</h3>
             <% if (book.reviews && book.reviews.length > 0) { %>
-                <ul>
-                    <% book.reviews.forEach(function(review) { %>
-                        <li>
-                            <strong><%= review.userName %>:</strong> <%= review.comment %><br />
-                            Rating: <%= review.rating %> stars
-                        </li>
-                    <% }) %>
-                </ul>
+              <div class="review-box">
+                <% book.reviews.forEach(function(review) { %>
+                  <div class="review-item">
+                    <strong>Review by <%= review.userName %>:</strong><br />
+                    <span class="rating">Rating: <%= review.rating %> stars</span><br />
+                    <p><%= review.comment %></p>
+                  </div>
+                <% }) %>
+              </div>
             <% } else { %>
-                <p>No reviews yet.</p>
+              <p>No reviews yet.</p>
             <% } %>
-
+          </div>
+          <div class="review-box">
             <h4>Leave a review:</h4>
-            <form method="POST" action="/books/review">
-                <input type="hidden" name="bookId" value="<%= book._id %>" />
-                <p>Your Name: <input type="text" name="userName" required /></p>
-                <p>Rating: 
-                    <select name="rating" required>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </p>
-                <p>Comment: <textarea name="comment" required></textarea></p>
-                <input type="submit" value="Post Review" />
-            </form>
-
-            <hr />
+            <% if (userId && firstName) { %> <!-- Ensure user is logged in -->
+              <form method="POST" action="/books/review">
+                <input type="hidden" name="bookId" value="<%= book.id %>" />
+                <input type="hidden" name="userId" value="<%= userId %>" /> <!-- Store userId -->
+                <input type="hidden" name="username" value="<%= firstName %>" /> <!-- Store firstName -->
+                <p>Your Name: <%= firstName %> (UserID: <%= userId %>)</p> <!-- Display username and userId -->
+                
+                <!-- Rating dropdown instead of input -->
+                <label for="rating">Rating:</label>
+                <select name="rating" required>
+                  <option value="">Select Rating</option>
+                  <option value="1">1 Star</option>
+                  <option value="2">2 Stars</option>
+                  <option value="3">3 Stars</option>
+                  <option value="4">4 Stars</option>
+                  <option value="5">5 Stars</option>
+                </select><br />
+                
+                <label for="comment">Comment:</label><br />
+                <textarea name="comment" rows="4" cols="40" required></textarea><br />
+                <button type="submit">Submit Review</button>
+              </form>
+            <% } else { %>
+              <p>Please <a href="/users/login">login</a> to leave a review.</p>
+            <% } %>
+          </div>
         </li>
       <% }) %>
     </ul>
 
-    <p>Want to go back? <a href="/">Home</a></p>
+    <footer>
+      <p>Thank you for shopping at <%= shopData.shopName %>!</p>
+    </footer>
   </body>
 </html>

@@ -11,6 +11,10 @@
     <% } else { %>
         <p><a href="/users/login">Login</a></p>
     <% } %>
+    <!-- In list.ejs or other templates -->
+<h1>Welcome, <%= user ? user.username : "Guest" %> (UserID: <%= user ? user.userId : "N/A" %>)</h1>
+<!-- Display books list here -->
+
     <p><a href="about">About <%= shopData.shopName %></a></p>
     <p><a href="books/search">Search for books</a></p>
     <p><a href="books/addbook">Add a new book</a></p>

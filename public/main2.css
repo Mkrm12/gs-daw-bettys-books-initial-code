@@ -1,0 +1,30 @@
+.book-box {
+    border: 1px solid #ddd;
+    padding: 16px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  .book-title {
+    font-size: 1.5em;
+    margin-bottom: 0.5em;
+  }
+  .book-details p {
+    margin: 0.5em 0;
+  }
+  .review-section {
+    margin-top: 1em;
+  }
+  .review-box {
+    border-top: 1px solid #ccc;
+    padding-top: 1em;
+    margin-top: 1em;
+  }
+  .review-box ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  .review-box ul li {
+    margin-bottom: 0.5em;
+  }
+  
