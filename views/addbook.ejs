@@ -19,8 +19,8 @@
             if (name.value.trim() === '') {
                 document.getElementById('name-error').innerText = 'Book name is required';
                 isValid = false;
-            } else if (name.value.length > 100) {
-                document.getElementById('name-error').innerText = 'Book name must be less than 100 characters';
+            } else if (name.value.length > 50) {
+                document.getElementById('name-error').innerText = 'Book name must be less than 50 characters';
                 isValid = false;
             }
 
@@ -66,9 +66,15 @@
 </head>
 <body>
     <h1>Add Book to <%= shopData.shopName %></h1>
-    <!-- Ensure the form has the correct POST action -->
+    <!-- Display any validation errors -->
+    <% if (errors.length > 0) { %>
+        <ul style="color: red;">
+            <% errors.forEach(function(error) { %>
+                <li><%= error.msg %></li>
+            <% }); %>
+        </ul>
+    <% } %>
     <form id="add-book-form" method="POST" action="/books/bookadded">
-        
         <!-- User Name Field -->
         <p>Your Name: <input id="user" type="text" name="user" value="<%= previousData.user || '' %>"/></p>
         <p style="color: red;" class="error" id="user-error"></p>

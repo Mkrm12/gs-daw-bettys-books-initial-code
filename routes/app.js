@@ -22,10 +22,9 @@ app.use(session({
 // Middleware to make session data available in all views
 app.use((req, res, next) => {
     if (req.session.userId) {
-        // Store both userId and username in locals if the user is logged in
         res.locals.user = {
-            userId: req.session.userId,    // userId from session
-            username: req.session.username // username from session
+            userId: req.session.userId,
+            username: req.session.username
         };
     } else {
         res.locals.user = null;  // No user logged in
@@ -36,22 +35,16 @@ app.use((req, res, next) => {
 // Middleware to check if the user is logged in, if not, sets default values
 const optionalLogin = (req, res, next) => {
     if (req.session && req.session.userId) {
-      // If the user is logged in, make sure the session values are correct
-      // Don't change firstName if it's already set in the session
-      if (!req.session.firstName) {
-        req.session.firstName = req.session.username || "Guest";  // Default to 'Guest' if no firstName exists
-      }
-      next();
+        if (!req.session.firstName) {
+            req.session.firstName = req.session.username || "Guest";  // Default to 'Guest' if no firstName exists
+        }
+        next();
     } else {
-      // If no userId in session, set default values for session data
-      req.session.userId = null;
-      req.session.firstName = "Guest";  // Default to Guest if no firstName in session
-      next();
+        req.session.userId = null;
+        req.session.firstName = "Guest";  // Default to Guest if no firstName in session
+        next();
     }
-  };
-  
-
-
+};
 
 // Set EJS as the templating engine
 app.set('view engine', 'ejs');
