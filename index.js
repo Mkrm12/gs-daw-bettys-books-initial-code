@@ -2,7 +2,7 @@
 var express = require('express');
 var ejs = require('ejs');
 var session = require('express-session');
-var validator = require ('express-validator');
+var validator = require('express-validator');
 
 // Import mysql module
 var mysql = require('mysql2');
@@ -25,7 +25,6 @@ app.use(session({
 // Create an input sanitizer
 app.use(expressSanitizer());
 
-
 // Middleware to make user info available in all templates
 app.use((req, res, next) => {
     res.locals.user = req.session.userId ? { username: req.session.userId } : null;
@@ -46,8 +45,9 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'appuser',
     password: 'app2027',
-    database: 'bettys_books'
+    database: 'bettys_movies'
 });
+
 // Connect to the database
 db.connect((err) => {
     if (err) {
@@ -58,7 +58,7 @@ db.connect((err) => {
 global.db = db;
 
 // Define our application-specific data
-app.locals.shopData = { shopName: "Bettys Books" };
+app.locals.shopData = { shopName: "Betty's Movies" };
 
 // Load the route handlers
 const mainRoutes = require("./routes/main");
@@ -68,9 +68,9 @@ app.use('/', mainRoutes);
 const usersRoutes = require('./routes/users');
 app.use('/users', usersRoutes);
 
-// Load the route handlers for /books
-const booksRoutes = require('./routes/books');
-app.use('/books', booksRoutes);
+// Load the route handlers for /movies
+const moviesRoutes = require('./routes/movies');
+app.use('/movies', moviesRoutes);
 
 // Start the web app listening
 app.listen(port, () => console.log(`Node app listening on port ${port}!`));

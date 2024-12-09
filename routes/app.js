@@ -57,7 +57,7 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'appuser',
     password: 'app2027',
-    database: 'bettys_books'
+    database: 'bettys_movies' // Updated database name
 });
 
 db.connect((err) => {
@@ -75,8 +75,11 @@ app.use('/', mainRoutes);
 const usersRoutes = require('./routes/users');
 app.use('/users', usersRoutes);
 
-const booksRoutes = require('./routes/books');
-app.use('/books', booksRoutes);
+const moviesRoutes = require('./routes/movies'); // Updated route for movies
+app.use('/movies', moviesRoutes);
+
+const latestRoutes = require('./routes/latest'); // New route for latest movies
+app.use('/latest', latestRoutes);
 
 // Start the server
 app.listen(port, () => {

@@ -6,18 +6,18 @@
     <title>Welcome to <%= shopData.shopName %></title>
     <link rel="stylesheet" type="text/css" href="/main.css" />
     <style>
-      .book-box {
+      .movie-box {
         border: 1px solid #ddd;
         padding: 16px;
         margin-bottom: 20px;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       }
-      .book-title {
+      .movie-title {
         font-size: 1.5em;
         margin-bottom: 0.5em;
       }
-      .book-details p {
+      .movie-details p {
         margin: 0.5em 0;
       }
       .review-section {
@@ -48,10 +48,11 @@
       .rating {
         color: #f39c12;
       }
-      select {
+      input[type="number"] {
         padding: 5px;
         font-size: 1em;
         margin-bottom: 10px;
+        width: 60px;
       }
       textarea {
         width: 100%;
@@ -62,28 +63,27 @@
   </head>
   <body>
     <h1><%= shopData.shopName %> Shop</h1>
-    <h2>Here are the books that we sell:</h2>
+    <h2>Here are the movies that we offer:</h2>
 
     <p><strong>Welcome <%= firstName %> (UserID: <%= userId %>)</strong></p> <!-- Displaying user info -->
 
     <ul>
-      <% availableBooks.forEach(function(book) { %>
-        <li class="book-box">
-          <div class="book-title"><%= book.name %></div>
-          <div class="book-details">
-            <p><strong>Author:</strong> <%= book.author %></p>
-            <p><strong>Price:</strong> £<%= book.price %></p>
-            <p><strong>Description:</strong> <%= book.description %></p>
-            <p><strong>Overall Rating:</strong> <%= book.rating || "No Rating Yet" %> stars</p>
+      <% availableMovies.forEach(function(movie) { %>
+        <li class="movie-box">
+          <div class="movie-title"><%= movie.title %></div>
+          <div class="movie-details">
+            <p><strong>Release Date:</strong> <%= movie.release_date %></p>
+            <p><strong>Description:</strong> <%= movie.description %></p>
+            <p><strong>Overall Rating:</strong> <%= movie.rating || "No Rating Yet" %> </p>
           </div>
           <div class="review-section">
             <h3>Reviews:</h3>
-            <% if (book.reviews && book.reviews.length > 0) { %>
+            <% if (movie.reviews && movie.reviews.length > 0) { %>
               <div class="review-box">
-                <% book.reviews.forEach(function(review) { %>
+                <% movie.reviews.forEach(function(review) { %>
                   <div class="review-item">
                     <strong>Review by <%= review.userName %>:</strong><br />
-                    <span class="rating">Rating: <%= review.rating %> stars</span><br />
+                    <span class="rating">Rating: <%= review.rating %></span><br />
                     <p><%= review.comment %></p>
                   </div>
                 <% }) %>
@@ -95,22 +95,15 @@
           <div class="review-box">
             <h4>Leave a review:</h4>
             <% if (userId && firstName) { %> <!-- Ensure user is logged in -->
-              <form method="POST" action="/books/review">
-                <input type="hidden" name="bookId" value="<%= book.id %>" />
+              <form method="POST" action="/movies/review">
+                <input type="hidden" name="movieId" value="<%= movie.id %>" />
                 <input type="hidden" name="userId" value="<%= userId %>" /> <!-- Store userId -->
                 <input type="hidden" name="username" value="<%= firstName %>" /> <!-- Store firstName -->
                 <p>Your Name: <%= firstName %> (UserID: <%= userId %>)</p> <!-- Display username and userId -->
                 
-                <!-- Rating dropdown instead of input -->
+                <!-- Rating input instead of dropdown -->
                 <label for="rating">Rating:</label>
-                <select name="rating" required>
-                  <option value="">Select Rating</option>
-                  <option value="1">1 Star</option>
-                  <option value="2">2 Stars</option>
-                  <option value="3">3 Stars</option>
-                  <option value="4">4 Stars</option>
-                  <option value="5">5 Stars</option>
-                </select><br />
+                <input type="number" name="rating" step="0.1" min="0" max="10" required><br />
                 
                 <label for="comment">Comment:</label><br />
                 <textarea name="comment" rows="4" cols="40" required></textarea><br />
@@ -125,7 +118,7 @@
     </ul>
 
     <footer>
-      <p>Thank you for shopping at <%= shopData.shopName %>!</p>
+      <p>Thank you for visiting <%= shopData.shopName %>!</p>
     </footer>
   </body>
 </html>

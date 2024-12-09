@@ -11,16 +11,15 @@
     <% } else { %>
         <p><a href="/users/login">Login</a></p>
     <% } %>
-    <!-- In list.ejs or other templates -->
-<h1>Welcome, <%= user ? user.username : "Guest" %> (UserID: <%= user ? user.userId : "N/A" %>)</h1>
-<!-- Display books list here -->
+    <h1>Welcome, <%= user ? user.username : "Guest" %> (UserID: <%= user ? user.userId : "N/A" %>)</h1>
+    <!-- Display movies list here -->
 
     <p><a href="about">About <%= shopData.shopName %></a></p>
-    <p><a href="books/search">Search for books</a></p>
-    <p><a href="books/addbook">Add a new book</a></p>
-    <p><a href="books/list">List books</a></p>
-    <p><a href="books/bargainbooks">Bargain books</a></p>
+    <p><a href="movies/search">Search for movies</a></p>
+    <p><a href="movies/addmovie">Add a new movie</a></p>
+    <p><a href="movies/list">List movies</a></p>
     <p><a href="users/register">Register with us</a></p>
     <p><a href="users/userList">List users</a></p>
+    <p><a href="movies/latest">Latest releases</a></p>
 </body>
 </html>

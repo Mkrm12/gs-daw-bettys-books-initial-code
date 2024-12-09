@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <title>Search Results - <%= shopData.shopName %></title>
+  <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+  <h1>Search Results - <%= shopData.shopName %></h1>
+  <% if (books && books.length > 0) { %>
+    <ul>
+      <% books.forEach(function(book) { %>
+        <li>
+          <strong><%= book.name %></strong><br />
+          Author: <%= book.author %><br />
+          Price: £<%= book.price %><br />
+          Description: <%= book.description %><br />
+          <strong>Overall Rating: <%= book.rating || 'No Rating Yet' %> stars</strong>
+        </li>
+        <hr />
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p>No books match your search criteria. Please try again!</p>
+  <% } %>
+  <p><a href="/books/search">Back to Search</a></p>
+</body>
+</html>

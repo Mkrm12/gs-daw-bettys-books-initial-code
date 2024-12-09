@@ -1,15 +1,23 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Search <%=shopData.shopName%></title>
-    <link rel="stylesheet"  type="text/css" href="/main.css" />
-  </head>
-  <body>
-    <h1>Search <%=shopData.shopName%></h1>
-    <form action="search_result" method="GET">
-      <p>What book do you want?</p>
-      <input id="search_box" type="text" name="search_text">
-      <input type="submit" value="Search" >
-    </form>
-  </body>
+<head>
+  <title>Search <%= shopData.shopName %></title>
+  <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+  <h1>Search <%= shopData.shopName %></h1>
+  <form action="/books/search_result" method="GET">
+    <p>Search by name:</p>
+    <input type="text" name="name" placeholder="Book Name">
+    <p>Search by author:</p>
+    <input type="text" name="author" placeholder="Author Name">
+    <p>Search by price range:</p>
+    <input type="number" name="minPrice" placeholder="Min Price" step="0.01">
+    <input type="number" name="maxPrice" placeholder="Max Price" step="0.01">
+    <p>Search by rating:</p>
+    <input type="number" name="rating" placeholder="Minimum Rating" step="0.1" min="1" max="5">
+    <br><br>
+    <input type="submit" value="Search">
+  </form>
+</body>
 </html>
