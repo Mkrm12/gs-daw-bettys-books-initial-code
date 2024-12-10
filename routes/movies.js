@@ -312,89 +312,125 @@ router.get("/latest", async (req, res, next) => {
     }
 });
 
-// Route to fetch and store recommended movies
+
+// Helper to normalize strings (case-insensitive)
+const normalize = (str) => str.toLowerCase().trim();
+
+// Fetch and store movie recommendations
 router.get("/fetch-recommendations", async (req, res, next) => {
-    const userId = req.session.userId || null;
-    const userName = req.session.firstName || "Guest";
-    
+    const { genres, keywords, releaseYear, description } = req.query;
+    const genreParam = genres ? genres.split(',').map(g => g.trim()).join(',') : '';
+    const keywordParam = keywords ? keywords.split(',').map(k => k.trim()).join(',') : '';
+
     try {
-        // Fetch the latest movies from TMDB
-        const response = await axios.get('https://api.themoviedb.org/3/movie/now_playing', {
+        const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
             headers: {
                 'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
             },
             params: {
-                'api_key': TMDB_API_KEY
+                api_key: TMDB_API_KEY,
+                with_genres: genreParam || undefined,
+                primary_release_year: releaseYear || undefined,
+                query: description || undefined,
+                sort_by: 'popularity.desc',
             }
         });
 
         const movies = response.data.results;
 
-        // Process and store each movie in the database
+        // Clear existing recommendations
+        await new Promise((resolve, reject) => {
+            db.query('DELETE FROM recommendations', (err) => {
+                if (err) return reject(err);
+                resolve();
+            });
+        });
+
+        // Process movie recommendations
         for (const movie of movies) {
             const movieDetailsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
                 headers: {
                     'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
                 },
-                params: {
-                    'api_key': TMDB_API_KEY
-                }
+                params: { api_key: TMDB_API_KEY }
             });
 
             const keywordsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/keywords`, {
                 headers: {
                     'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
                 },
-                params: {
-                    'api_key': TMDB_API_KEY
-                }
+                params: { api_key: TMDB_API_KEY }
             });
 
             const movieDetails = movieDetailsResponse.data;
-            const genres = movieDetails.genres.map(genre => genre.name).join(', ');
-            const tags = keywordsResponse.data.keywords.map(keyword => keyword.name).join(', ');
-            console.log('Tags:', tags);
+            const genres = movieDetails.genres.map(g => g.name).join(', ');
+            const tags = keywordsResponse.data.keywords.map(k => k.name).join(', ');
 
-            const sqlQuery = `
-                INSERT INTO recommendations (movie_id, title, description, genres, release_date, tags)
-                VALUES (?, ?, ?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description), genres = VALUES(genres), release_date = VALUES(release_date), tags = VALUES(tags)
-            `;
+            const allText = `${movieDetails.title} ${movieDetails.overview} ${genres} ${tags}`.toLowerCase();
+            const keywordsArray = keywordParam ? keywordParam.toLowerCase().split(',') : [];
 
-            const values = [
-                movieDetails.id,
-                movieDetails.title,
-                movieDetails.overview,
-                genres,
-                movieDetails.release_date,
-                tags
-            ];
+            // Only save relevant movies
+            if (!keywordParam || keywordsArray.every(k => allText.includes(k.trim()))) {
+                const sqlQuery = `
+                    INSERT INTO recommendations (movie_id, title, description, genres, release_date, tags)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE 
+                        title = VALUES(title), 
+                        description = VALUES(description), 
+                        genres = VALUES(genres), 
+                        release_date = VALUES(release_date), 
+                        tags = VALUES(tags)
+                `;
 
-            db.query(sqlQuery, values, (err, result) => {
-                if (err) {
-                    console.error('Error storing movie details:', err.message);
-                } else {
-                    console.log('Stored movie details:', movieDetails.title);
-                }
-            });
+                const values = [
+                    movieDetails.id,
+                    movieDetails.title,
+                    movieDetails.overview,
+                    genres,
+                    movieDetails.release_date,
+                    tags
+                ];
+
+                await new Promise((resolve, reject) => {
+                    db.query(sqlQuery, values, (err) => {
+                        if (err) return reject(err);
+                        resolve();
+                    });
+                });
+            }
         }
 
-        res.json({ message: 'Recommendations fetched and stored successfully' });
+        res.redirect("/movies/recommendations");
     } catch (error) {
         console.error('Error fetching recommendations:', error.message);
         next(error);
     }
 });
 
-// Fetch and display recommendations
+// Route to display recommendations
 router.get("/recommendations", (req, res, next) => {
     const userId = req.session.userId || null;
     const userName = req.session.firstName || "Guest";
+    const { search, type } = req.query;
 
-    const sqlQuery = 'SELECT * FROM recommendations';
-    db.query(sqlQuery, (err, results) => {
+    let query = 'SELECT * FROM recommendations';
+    const params = [];
+
+    if (search) {
+        if (type === 'genre') {
+            query += ' WHERE LOWER(genres) LIKE ?';
+            params.push(`%${normalize(search)}%`);
+        } else if (type === 'tag') {
+            query += ' WHERE LOWER(tags) LIKE ?';
+            params.push(`%${normalize(search)}%`);
+        }
+    }
+
+    query += ' ORDER BY release_date DESC';
+
+    db.query(query, params, (err, results) => {
         if (err) return next(err);
-        res.render('recommendations', { movies: results, shopData: { shopName: "Betty's Movies" }, userName, userId });
+        res.render('recommendations', { movies: results, shopData: { shopName: "Betty's Movies" }, userName });
     });
 });
 
