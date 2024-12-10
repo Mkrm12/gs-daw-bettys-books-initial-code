@@ -6,22 +6,21 @@
 </head>
 <body>
   <h1>Search Results - <%= shopData.shopName %></h1>
-  <% if (books && books.length > 0) { %>
+  <% if (movies && movies.length > 0) { %>
     <ul>
-      <% books.forEach(function(book) { %>
+      <% movies.forEach(function(movie) { %>
         <li>
-          <strong><%= book.name %></strong><br />
-          Author: <%= book.author %><br />
-          Price: £<%= book.price %><br />
-          Description: <%= book.description %><br />
-          <strong>Overall Rating: <%= book.rating || 'No Rating Yet' %> stars</strong>
+          <strong><%= movie.title %></strong><br />
+          Description: <%= movie.description %><br />
+          Release Date: <%= new Date(movie.release_date).toString().split(' ').slice(0, 6).join(' ') %><br />
+          <strong>Overall Rating: <%= movie.rating || 'No Rating Yet' %></strong>
         </li>
         <hr />
       <% }) %>
     </ul>
   <% } else { %>
-    <p>No books match your search criteria. Please try again!</p>
+    <p>No movies match your search criteria. Please try again!</p>
   <% } %>
-  <p><a href="/books/search">Back to Search</a></p>
+  <p><a href="/movies/search">Back to Search</a></p>
 </body>
 </html>

@@ -24,11 +24,14 @@ app.use((req, res, next) => {
     if (req.session.userId) {
         res.locals.user = {
             userId: req.session.userId,
-            username: req.session.username
+            username: req.session.username,
+            firstName: req.session.firstName // Ensure firstName is included
         };
     } else {
         res.locals.user = null;  // No user logged in
     }
+    console.log('Middleware Session Data:', req.session); // Debug statement
+    console.log('Middleware Locals:', res.locals); // Debug statement
     next();
 });
 
@@ -77,9 +80,6 @@ app.use('/users', usersRoutes);
 
 const moviesRoutes = require('./routes/movies'); // Updated route for movies
 app.use('/movies', moviesRoutes);
-
-const latestRoutes = require('./routes/latest'); // New route for latest movies
-app.use('/latest', latestRoutes);
 
 // Start the server
 app.listen(port, () => {

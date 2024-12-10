@@ -123,7 +123,7 @@ router.post('/loggedin', (req, res, next) => {
                 req.session.username = user.username; // Store username
                 req.session.firstName = user.first_name; // Store firstName
 
-                res.redirect('/index');  // Redirect to the index after successful login
+                res.redirect('/');  // Redirect to the home page after successful login
             } else {
                 res.send('Invalid username or password.');
             }
@@ -131,19 +131,6 @@ router.post('/loggedin', (req, res, next) => {
     });
 });
 
-
-
-
-// List users (without passwords)
-router.get('/userList', redirectLogin, (req, res, next) => {
-    const sqlquery = "SELECT username, first_name, last_name, email FROM users";
-    db.query(sqlquery, (err, result) => {
-        if (err) {
-            return next(err);
-        }
-        res.render("userList.ejs", { users: result });
-    });
-});
 
 // Handle logout logic
 router.get('/logout', redirectLogin, (req, res) => {

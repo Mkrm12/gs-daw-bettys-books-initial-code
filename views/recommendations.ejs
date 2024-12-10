@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head>
+    <title>Recommendations - <%= shopData.shopName %></title>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+</head>
+<body>
+    <h1>Recommendations - <%= shopData.shopName %></h1>
+    <p><strong>Welcome <%= firstName %></strong></p> <!-- Displaying user info -->
+    <% if (movies.length > 0) { %>
+        <ul>
+            <% movies.forEach(function(movie) { %>
+                <li>
+                    <strong>Title:</strong> <%= movie.title %><br />
+                    <strong>Genres:</strong> <%= movie.genres %><br />
+                    <strong>Release Date:</strong> <%= new Date(movie.release_date).toString().split(' ').slice(0, 6).join(' ') %><br />
+                    <strong>Description:</strong> <%= movie.description %><br />
+                    <strong>Tags:</strong> <%= movie.tags %>
+                </li>
+                <hr />
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p>No recommendations available at the moment. Please check back later!</p>
+    <% } %>
+    <p><a href="/">Back to Home</a></p>
+</body>
+</html>

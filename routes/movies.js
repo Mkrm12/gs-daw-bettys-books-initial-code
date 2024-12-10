@@ -17,6 +17,10 @@ router.get("/addmovie", redirectLogin, (req, res) => {
     res.render("addMovie.ejs", { errors: [], previousData: {}, shopData: { shopName: "Betty's Movies" } });
 });
 
+router.get("/", (req, res, next) => {
+    const userName = req.session?.firstName || "Guest"; // Get user's first name or default to "Guest"
+});
+
 // Handle the movie addition with validation and sanitization
 router.post(
     "/movieadded",
@@ -32,10 +36,10 @@ router.post(
             .withMessage("Description must be between 10 and 1000 characters.")
             .trim()
             .escape(),
-        check("rating")
+            check("rating")
             .matches(/^\d+(\.\d{1,2})?$/)
             .withMessage("Rating must be a valid number with up to two decimal places.")
-            .isFloat({ min: 0, max: 10 })
+            .isFloat({ min: 0, max: 10 }) // Adjusted the max value
             .withMessage("Rating must be between 0 and 10."),
         check("release_date")
             .isDate()
@@ -75,6 +79,8 @@ router.post(
     }
 );
 
+
+
 // Route to list all movies with their reviews
 router.get("/list", (req, res, next) => {
     const userId = req.session.userId || null;
@@ -82,7 +88,7 @@ router.get("/list", (req, res, next) => {
 
     const sqlquery = `
       SELECT m.id, m.title, m.description, m.rating, m.release_date,
-             r.user_id, r.review_text, u.first_name 
+             r.user_id, r.rating AS review_rating, r.review_text, u.first_name 
       FROM movies m 
       LEFT JOIN reviews r ON m.id = r.movie_id 
       LEFT JOIN users u ON r.user_id = u.id
@@ -109,6 +115,7 @@ router.get("/list", (req, res, next) => {
                 movies[row.id].reviews.push({
                     userId: row.user_id,
                     userName: row.first_name,
+                    rating: row.review_rating, // Ensure review rating is captured correctly
                     comment: row.review_text,
                 });
             }
@@ -136,15 +143,15 @@ router.post("/review", (req, res, next) => {
         return res.status(400).send("Invalid user ID");
     }
 
-    if (rating < 1 || rating > 10) {
-        return res.status(400).send("Rating must be between 1 and 10");
+    if (rating < 0 || rating > 10) {
+        return res.status(400).send("Rating must be between 0 and 10");
     }
 
     const insertReviewQuery = `
-      INSERT INTO reviews (movie_id, user_id, review_text) 
-      VALUES (?, ?, ?)
+      INSERT INTO reviews (movie_id, user_id, rating, review_text) 
+      VALUES (?, ?, ?, ?)
     `;
-    db.query(insertReviewQuery, [movieId, userId, comment], (err, result) => {
+    db.query(insertReviewQuery, [movieId, userId, rating, comment], (err, result) => {
         if (err) {
             return next(err);
         }
@@ -178,27 +185,51 @@ router.get('/search', (req, res) => {
 });
 
 router.get('/search_result', (req, res, next) => {
-    const { title, minRating, maxRating, release_date } = req.query;
+    const { title, minRating, maxRating, reviewContent, descriptionContent, releaseYear, sortBy } = req.query;
 
     // Build the SQL query dynamically based on provided filters
-    let sqlQuery = "SELECT * FROM movies WHERE 1=1"; // Default query that matches all movies
+    let sqlQuery = `
+        SELECT m.id, m.title, m.description, m.rating, m.release_date, COUNT(r.id) AS review_count
+        FROM movies m
+        LEFT JOIN reviews r ON m.id = r.movie_id
+        WHERE 1=1
+    `;
     const params = [];
 
     if (title) {
-        sqlQuery += " AND title LIKE ?";
+        sqlQuery += " AND m.title LIKE ?";
         params.push(`%${title}%`);
     }
     if (minRating) {
-        sqlQuery += " AND rating >= ?";
+        sqlQuery += " AND m.rating >= ?";
         params.push(parseFloat(minRating));
     }
     if (maxRating) {
-        sqlQuery += " AND rating <= ?";
+        sqlQuery += " AND m.rating <= ?";
         params.push(parseFloat(maxRating));
     }
-    if (release_date) {
-        sqlQuery += " AND release_date = ?";
-        params.push(release_date);
+    if (reviewContent) {
+        sqlQuery += " AND r.review_text LIKE ?";
+        params.push(`%${reviewContent}%`);
+    }
+    if (descriptionContent) {
+        sqlQuery += " AND m.description LIKE ?";
+        params.push(`%${descriptionContent}%`);
+    }
+    if (releaseYear) {
+        sqlQuery += " AND YEAR(m.release_date) = ?";
+        params.push(parseInt(releaseYear));
+    }
+
+    // Add sorting based on user selection
+    if (sortBy === 'mostReviews') {
+        sqlQuery += " GROUP BY m.id ORDER BY review_count DESC";
+    } else if (sortBy === 'highestRating') {
+        sqlQuery += " GROUP BY m.id ORDER BY m.rating DESC";
+    } else if (sortBy === 'newestRelease') {
+        sqlQuery += " GROUP BY m.id ORDER BY m.release_date DESC";
+    } else {
+        sqlQuery += " GROUP BY m.id";
     }
 
     // Execute the query
@@ -216,31 +247,128 @@ router.get('/search_result', (req, res, next) => {
     });
 });
 
-// Route to fetch and display the latest movies
+
+// TMDB API configuration
+const TMDB_API_KEY = 'b4c8f4d68cafb98598fa69cd18caccc3';
+const TMDB_AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNGM4ZjRkNjhjYWZiOTg1OThmYTY5Y2QxOGNhY2NjMyIsIm5iZiI6MTczMzc1MDQzNS42NzgwMDAyLCJzdWIiOiI2NzU2ZWVhMzllMTJmYTI1ZThmYmUwZmEiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Z7S4vYgb4uaChz0Tf1XFXLlfE4kcT1A4ybZb1t9aSuM';
+
+// Route to fetch and display the latest movies from TMDb and database
 router.get("/latest", async (req, res, next) => {
     try {
+        // Fetch the latest movies from TMDb
         const response = await axios.get('https://api.themoviedb.org/3/movie/now_playing', {
             headers: {
-                'Authorization': `Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNGM4ZjRkNjhjYWZiOTg1OThmYTY5Y2QxOGNhY2NjMyIsIm5iZiI6MTczMzc1MDQzNS42NzgwMDAyLCJzdWIiOiI2NzU2ZWVhMzllMTJmYTI1ZThmYmUwZmEiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Z7S4vYgb4uaChz0Tf1XFXLlfE4kcT1A4ybZb1t9aSuM`
+                'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
             },
             params: {
-                'api_key': 'b4c8f4d68cafb98598fa69cd18caccc3'
+                'api_key': TMDB_API_KEY
             }
         });
 
-        const latestMovies = response.data.results.slice(0, 5).map(movie => ({
+        const latestMoviesFromAPI = response.data.results.slice(0, 5).map(movie => ({
             title: movie.title,
             releaseDate: movie.release_date
         }));
 
-        res.render("latest", {
-            latestMovies: latestMovies,
-            shopData: { shopName: "Betty's Movies" }
+        // Fetch the latest five movie entries from your database
+        const sqlQuery = `
+            SELECT title, description, release_date
+            FROM movies
+            ORDER BY id DESC
+            LIMIT 5
+        `;
+
+        db.query(sqlQuery, (err, dbResults) => {
+            if (err) {
+                return next(err);
+            }
+
+            const latestMoviesFromDB = dbResults.map(movie => ({
+                title: movie.title,
+                releaseDate: movie.release_date,
+                description: movie.description
+            }));
+
+            res.render("latest", {
+                latestMoviesFromAPI: latestMoviesFromAPI,
+                latestMoviesFromDB: latestMoviesFromDB,
+                shopData: { shopName: "Betty's Movies" }
+            });
         });
     } catch (error) {
         console.error('Error fetching latest movies:', error.message);
         next(error);
     }
+});
+
+// Route to fetch and store recommended movies
+router.get("/fetch-recommendations", async (req, res, next) => {
+    try {
+        // Fetch the latest movies from TMDB
+        const response = await axios.get('https://api.themoviedb.org/3/movie/now_playing', {
+            headers: {
+                'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
+            },
+            params: {
+                'api_key': TMDB_API_KEY
+            }
+        });
+
+        const movies = response.data.results;
+
+        // Process and store each movie in the database
+        for (const movie of movies) {
+            const movieDetailsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
+                },
+                params: {
+                    'api_key': TMDB_API_KEY
+                }
+            });
+
+            const movieDetails = movieDetailsResponse.data;
+            const genres = movieDetails.genres.map(genre => genre.name).join(', ');
+            const tags = movieDetails.keywords ? movieDetails.keywords.map(keyword => keyword.name).join(', ') : '';
+
+            const sqlQuery = `
+                INSERT INTO recommendations (movie_id, title, description, genres, release_date, tags)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE title = VALUES(title), description = VALUES(description), genres = VALUES(genres), release_date = VALUES(release_date), tags = VALUES(tags)
+            `;
+
+            const values = [
+                movieDetails.id,
+                movieDetails.title,
+                movieDetails.overview,
+                genres,
+                movieDetails.release_date,
+                tags
+            ];
+
+            db.query(sqlQuery, values, (err, result) => {
+                if (err) {
+                    console.error('Error storing movie details:', err.message);
+                } else {
+                    console.log('Stored movie details:', movieDetails.title);
+                }
+            });
+        }
+
+        res.json({ message: 'Recommendations fetched and stored successfully' });
+    } catch (error) {
+        console.error('Error fetching recommendations:', error.message);
+        next(error);
+    }
+});
+
+// Fetch and display recommendations
+router.get("/recommendations", (req, res, next) => {
+    const sqlQuery = 'SELECT * FROM recommendations';
+    db.query(sqlQuery, (err, results) => {
+        if (err) return next(err);
+        res.render('recommendations', { movies: results, shopData: { shopName: "Betty's Movies" }, user: req.session });
+    });
 });
 
 module.exports = router;

@@ -12,13 +12,15 @@ const redirectLogin = (req, res, next) => {
 };
 
 // Handle our routes
-router.get('/',function(req, res, next){
-    res.render('index.ejs')
-})
+// Route for the homepage
+router.get("/", (req, res, next) => {
+    const userId = req.session?.userId || null; // Get userId from session or set to null
+    const userName = req.session?.firstName || "Guest"; // Get user's first name or default to "Guest"
+    
+    // Render the index page, passing user information
+    res.render("index", { userId, userName });
+});
 
-router.get('/index',function(req, res, next){
-    res.render('index.ejs')
-})
 
 router.get('/about',function(req, res, next){
     res.render('about.ejs')

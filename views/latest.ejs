@@ -6,10 +6,21 @@
   </head>
   <body>
     <h1><%= shopData.shopName %> Shop</h1>
-    <h2>Here are our latest movie releases:</h2>
+    <h2>Latest movie releases from TMDb:</h2>
     <ul>
-      <% latestMovies.forEach(function(movie) { %>
+      <% latestMoviesFromAPI.forEach(function(movie) { %>
         <li><%= movie.title %>, Release Date: <%= movie.releaseDate %></li>
+      <% }) %>
+    </ul>
+
+    <h2>Latest movie entries in our database:</h2>
+    <ul>
+      <% latestMoviesFromDB.forEach(function(movie) { %>
+        <li>
+          <strong>Title:</strong> <%= movie.title %><br>
+          <strong>Description:</strong> <%= movie.description %><br>
+          <strong>Release Date:</strong> <%= movie.releaseDate %>
+        </li>
       <% }) %>
     </ul>
   </body>
