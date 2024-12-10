@@ -314,22 +314,33 @@ router.get("/latest", async (req, res, next) => {
 
 
 // Helper to normalize strings (case-insensitive)
-const normalize = (str) => str.toLowerCase().trim();
+const normalize = (str) => str ? str.toLowerCase().trim() : '';
 
 // Fetch and store movie recommendations
 router.get("/fetch-recommendations", async (req, res, next) => {
     const { genres, keywords, releaseYear, description } = req.query;
-    const genreParam = genres ? genres.split(',').map(g => g.trim()).join(',') : '';
-    const keywordParam = keywords ? keywords.split(',').map(k => k.trim()).join(',') : '';
+    const genreParam = genres ? genres.split(',').map(normalize) : [];
+    const keywordParam = keywords ? keywords.split(',').map(normalize) : [];
+    const { search, type, startDate, endDate } = req.query;
+
+    // Ensure all variables have default values if undefined
+    const searchData = {
+        search: search || '',
+        type: type || 'genre', // Default to 'genre'
+        startDate: startDate || '',
+        endDate: endDate || ''
+    };
+
+    if (!genres && !keywords && !releaseYear && !description) {
+        return res.status(400).json({ error: "Please provide at least one filter for recommendations." });
+    }
 
     try {
         const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-            headers: {
-                'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
-            },
+            headers: { 'Authorization': `Bearer ${TMDB_AUTH_TOKEN}` },
             params: {
                 api_key: TMDB_API_KEY,
-                with_genres: genreParam || undefined,
+                with_genres: genreParam.join(',') || undefined,
                 primary_release_year: releaseYear || undefined,
                 query: description || undefined,
                 sort_by: 'popularity.desc',
@@ -349,28 +360,24 @@ router.get("/fetch-recommendations", async (req, res, next) => {
         // Process movie recommendations
         for (const movie of movies) {
             const movieDetailsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
-                headers: {
-                    'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
-                },
+                headers: { 'Authorization': `Bearer ${TMDB_AUTH_TOKEN}` },
                 params: { api_key: TMDB_API_KEY }
             });
 
             const keywordsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/keywords`, {
-                headers: {
-                    'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
-                },
+                headers: { 'Authorization': `Bearer ${TMDB_AUTH_TOKEN}` },
                 params: { api_key: TMDB_API_KEY }
             });
 
             const movieDetails = movieDetailsResponse.data;
-            const genres = movieDetails.genres.map(g => g.name).join(', ');
-            const tags = keywordsResponse.data.keywords.map(k => k.name).join(', ');
+            const genres = movieDetails.genres.map(g => normalize(g.name));
+            const tags = keywordsResponse.data.keywords.map(k => normalize(k.name));
 
-            const allText = `${movieDetails.title} ${movieDetails.overview} ${genres} ${tags}`.toLowerCase();
-            const keywordsArray = keywordParam ? keywordParam.toLowerCase().split(',') : [];
+            const allText = `${movieDetails.title} ${movieDetails.overview} ${genres.join(', ')} ${tags.join(', ')}`;
+            const isRelevantByKeywords = !keywords || keywordParam.some(k => allText.includes(k));
+            const isRelevantByGenres = !genres || genreParam.some(g => genres.includes(g));
 
-            // Only save relevant movies
-            if (!keywordParam || keywordsArray.every(k => allText.includes(k.trim()))) {
+            if (isRelevantByKeywords && isRelevantByGenres) {
                 const sqlQuery = `
                     INSERT INTO recommendations (movie_id, title, description, genres, release_date, tags)
                     VALUES (?, ?, ?, ?, ?, ?)
@@ -386,9 +393,9 @@ router.get("/fetch-recommendations", async (req, res, next) => {
                     movieDetails.id,
                     movieDetails.title,
                     movieDetails.overview,
-                    genres,
+                    genres.join(', '),
                     movieDetails.release_date,
-                    tags
+                    tags.join(', ')
                 ];
 
                 await new Promise((resolve, reject) => {
@@ -407,30 +414,45 @@ router.get("/fetch-recommendations", async (req, res, next) => {
     }
 });
 
-// Route to display recommendations
+// Get movie recommendations with filters
 router.get("/recommendations", (req, res, next) => {
     const userId = req.session.userId || null;
     const userName = req.session.firstName || "Guest";
-    const { search, type } = req.query;
+    const { search, type, startDate, endDate } = req.query;
 
-    let query = 'SELECT * FROM recommendations';
+    let query = 'SELECT * FROM recommendations WHERE 1=1';
     const params = [];
 
+    // Search by type
     if (search) {
         if (type === 'genre') {
-            query += ' WHERE LOWER(genres) LIKE ?';
-            params.push(`%${normalize(search)}%`);
+            query += ' AND FIND_IN_SET(?, genres)';
+            params.push(normalize(search));
         } else if (type === 'tag') {
-            query += ' WHERE LOWER(tags) LIKE ?';
+            query += ' AND tags LIKE ?';
             params.push(`%${normalize(search)}%`);
+        } else if (type === 'keyword') {
+            query += ' AND (tags LIKE ? OR description LIKE ?)';
+            params.push(`%${normalize(search)}%`, `%${normalize(search)}%`);
         }
+    }
+
+    // Search by release date range
+    if (startDate && endDate) {
+        query += ' AND release_date BETWEEN ? AND ?';
+        params.push(startDate, endDate);
     }
 
     query += ' ORDER BY release_date DESC';
 
     db.query(query, params, (err, results) => {
         if (err) return next(err);
-        res.render('recommendations', { movies: results, shopData: { shopName: "Betty's Movies" }, userName });
+
+        res.render('recommendations', {
+            movies: results.length ? results : null,
+            shopData: { shopName: "Betty's Movies" },
+            userName
+        });
     });
 });
 
