@@ -34,7 +34,6 @@
                 isValid = false;
             }
 
-
             // Validate Release Date
             if (release_date.value.trim() === '') {
                 document.getElementById('release_date-error').innerText = 'Release date is required';
@@ -77,7 +76,7 @@
     <% } %>
     <form id="add-movie-form" method="POST" action="/movies/movieadded">
         <!-- User Name Field -->
-        <p>Your Name: <input id="user" type="text" name="user" value="<%= previousData.user || '' %>"/></p>
+        <p>Your Name: <input id="user" type="text" name="user" value="<%= previousData.user || userName %>" readonly /></p>
         <p style="color: red;" class="error" id="user-error"></p>
 
         <!-- Movie Title Field -->

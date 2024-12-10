@@ -14,12 +14,17 @@ const redirectLogin = (req, res, next) => {
 
 // Route for rendering the Add Movie page
 router.get("/addmovie", redirectLogin, (req, res) => {
-    res.render("addMovie.ejs", { errors: [], previousData: {}, shopData: { shopName: "Betty's Movies" } });
+    const userName = req.session.firstName || "Guest";
+    res.render("addMovie.ejs", { 
+        errors: [], 
+        previousData: {}, 
+        shopData: { shopName: "Betty's Movies" },
+        userName  // Pass userName to the template
+    });
 });
 
-router.get("/", (req, res, next) => {
-    const userName = req.session?.firstName || "Guest"; // Get user's first name or default to "Guest"
-});
+
+
 
 // Handle the movie addition with validation and sanitization
 router.post(
@@ -78,6 +83,7 @@ router.post(
         });
     }
 );
+
 
 
 
@@ -254,6 +260,9 @@ const TMDB_AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNGM4ZjRkNjhjYWZiOTg1OT
 
 // Route to fetch and display the latest movies from TMDb and database
 router.get("/latest", async (req, res, next) => {
+    const userId = req.session.userId || null;
+    const userName = req.session.firstName || "Guest";
+
     try {
         // Fetch the latest movies from TMDb
         const response = await axios.get('https://api.themoviedb.org/3/movie/now_playing', {
@@ -292,7 +301,9 @@ router.get("/latest", async (req, res, next) => {
             res.render("latest", {
                 latestMoviesFromAPI: latestMoviesFromAPI,
                 latestMoviesFromDB: latestMoviesFromDB,
-                shopData: { shopName: "Betty's Movies" }
+                shopData: { shopName: "Betty's Movies" },
+                userName,  // Pass userName to the template
+                userId     // Pass userId to the template
             });
         });
     } catch (error) {
@@ -303,6 +314,9 @@ router.get("/latest", async (req, res, next) => {
 
 // Route to fetch and store recommended movies
 router.get("/fetch-recommendations", async (req, res, next) => {
+    const userId = req.session.userId || null;
+    const userName = req.session.firstName || "Guest";
+    
     try {
         // Fetch the latest movies from TMDB
         const response = await axios.get('https://api.themoviedb.org/3/movie/now_playing', {
@@ -327,9 +341,19 @@ router.get("/fetch-recommendations", async (req, res, next) => {
                 }
             });
 
+            const keywordsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/keywords`, {
+                headers: {
+                    'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
+                },
+                params: {
+                    'api_key': TMDB_API_KEY
+                }
+            });
+
             const movieDetails = movieDetailsResponse.data;
             const genres = movieDetails.genres.map(genre => genre.name).join(', ');
-            const tags = movieDetails.keywords ? movieDetails.keywords.map(keyword => keyword.name).join(', ') : '';
+            const tags = keywordsResponse.data.keywords.map(keyword => keyword.name).join(', ');
+            console.log('Tags:', tags);
 
             const sqlQuery = `
                 INSERT INTO recommendations (movie_id, title, description, genres, release_date, tags)
@@ -364,10 +388,13 @@ router.get("/fetch-recommendations", async (req, res, next) => {
 
 // Fetch and display recommendations
 router.get("/recommendations", (req, res, next) => {
+    const userId = req.session.userId || null;
+    const userName = req.session.firstName || "Guest";
+
     const sqlQuery = 'SELECT * FROM recommendations';
     db.query(sqlQuery, (err, results) => {
         if (err) return next(err);
-        res.render('recommendations', { movies: results, shopData: { shopName: "Betty's Movies" }, user: req.session });
+        res.render('recommendations', { movies: results, shopData: { shopName: "Betty's Movies" }, userName, userId });
     });
 });
 
