@@ -26,7 +26,9 @@ router.get('/about',function(req, res, next){
     res.render('about.ejs')
 })
 
-
+// Route to render API Provision page 
+router.get('/api-provision', (req, res) => { 
+    res.render('apiProvision'); });
 
 
 // Export the router object so index.js can access it

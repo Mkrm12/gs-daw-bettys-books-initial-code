@@ -13,6 +13,9 @@
         .movie-box h3 {
             margin-top: 0;
         }
+        .movie-box p {
+            white-space: pre-wrap; /* This ensures long texts wrap correctly */
+        }
     </style>
 </head>
 <body>
@@ -43,8 +46,8 @@
             <div class="movie-list">
                 <% apiRecommendations.forEach(function(resultSnippet) { %>
                     <div class="movie-box">
-                        <p><strong>Query:</strong> <%= resultSnippet.query.slice(0, 100) %></p>
-                        <p><strong>Response:</strong> <%= resultSnippet.response.slice(0, 270) %></p>
+                        <p><strong>Query:</strong> <%= resultSnippet.query %></p>
+                        <p><strong>Response:</strong> <%= resultSnippet.response %></p>
                     </div>
                 <% }); %>
             </div>

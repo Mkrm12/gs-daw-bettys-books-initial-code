@@ -544,7 +544,18 @@ router.get('/recommendations', async (req, res, next) => {
         if (err) return next(err);
 
         const preferences = results.length ? results[0] : null;
-        const genres = preferences.favorite_genres ? preferences.favorite_genres.split('|') : [];
+
+        // Check if preferences are null or empty
+        if (!preferences) {
+            return res.status(404).json({ error: "No preferences found for this user." });
+        }
+
+        // Handle case where the user doesn't have favorite genres
+        if (!preferences.favorite_genres) {
+            return res.json({ message: "User has no favorite movies." });
+        }
+
+        const genres = preferences.favorite_genres.split('|');
 
         // Normalize and count genres
         const genreCounts = genres
@@ -596,9 +607,10 @@ router.get('/recommendations', async (req, res, next) => {
                     }
                 });
 
+                // Increased slice for query and response
                 apiRecommendations = apiResponse.data.items?.map(item => ({
-                    query: item.title.slice(0, 100),
-                    response: item.snippet.slice(0, 270)
+                    query: item.title.slice(0, 150),  // Increase query slice length
+                    response: item.snippet.slice(0, 400)  // Increase response slice length
                 })) || [];
             } catch (error) {
                 console.error('Error fetching API recommendations:', error.message);
@@ -606,8 +618,8 @@ router.get('/recommendations', async (req, res, next) => {
 
             res.render('recommendations', {
                 username: preferences.username,
-                allGenres: allGenres.join(', '),
-                favoriteGenres: topGenres.join(', '), // Only top 2 distinct genres
+                allGenres: allGenres.length ? allGenres.join(', ') : 'No favorite genres available.',
+                favoriteGenres: topGenres.length ? topGenres.join(', ') : 'No favorite genres available.',
                 dbRecommendations,
                 apiRecommendations
             });
@@ -615,9 +627,8 @@ router.get('/recommendations', async (req, res, next) => {
     });
 });
 
+
 module.exports = router;
-
-
 
 
 
@@ -673,140 +684,3 @@ module.exports = router;
 
 
 
-
-
-// // Helper to normalize strings (case-insensitive)
-// const normalize = (str) => str ? str.toLowerCase().trim() : '';
-
-// // Fetch and store movie recommendations
-// router.get("/fetch-recommendations", async (req, res, next) => {
-//     const userId = req.session.userId;
-
-//     if (!userId) {
-//         return res.status(401).json({ error: "User not logged in." });
-//     }
-
-//     try {
-//         // Fetch user favorites with relevant details
-//         const [favorites] = await new Promise((resolve, reject) => {
-//             db.query(
-//                 `SELECT m.id, m.title, m.description, m.release_date, m.genres, m.tags, m.keywords
-//                  FROM user_favorites uf
-//                  JOIN movies m ON uf.movie_id = m.id
-//                  WHERE uf.user_id = ?`,
-//                 [userId],
-//                 (err, results) => {
-//                     if (err) return reject(err);
-//                     resolve(results);
-//                 }
-//             );
-//         });
-
-//         if (favorites.length === 0) {
-//             return res.status(400).json({ error: "No favorite movies found." });
-//         }
-
-//         // Aggregate user preferences
-//         let genrePreferences = {};
-//         let tagPreferences = {};
-//         let keywordPreferences = {};
-
-//         favorites.forEach(movie => {
-//             const genres = movie.genres.split(',').map(normalize);
-//             genres.forEach(genre => {
-//                 genrePreferences[genre] = (genrePreferences[genre] || 0) + 1;
-//             });
-
-//             const tags = movie.tags.split(',').map(normalize);
-//             tags.forEach(tag => {
-//                 tagPreferences[tag] = (tagPreferences[tag] || 0) + 1;
-//             });
-
-//             const keywords = movie.keywords.split(',').map(normalize);
-//             keywords.forEach(keyword => {
-//                 keywordPreferences[keyword] = (keywordPreferences[keyword] || 0) + 1;
-//             });
-//         });
-
-//         const sortedGenres = Object.keys(genrePreferences).sort((a, b) => genrePreferences[b] - genrePreferences[a]);
-//         const sortedTags = Object.keys(tagPreferences).sort((a, b) => tagPreferences[b] - tagPreferences[a]);
-//         const sortedKeywords = Object.keys(keywordPreferences).sort((a, b) => keywordPreferences[b] - keywordPreferences[a]);
-
-//         // Fetch movie recommendations based on aggregated preferences
-//         const response = await axios.get('https://api.themoviedb.org/3/discover/movie', {
-//             params: {
-//                 api_key: process.env.TMDB_API_KEY,
-//                 with_genres: sortedGenres.slice(0, 3).join(','),
-//                 sort_by: 'popularity.desc'
-//             }
-//         });
-
-//         const movies = response.data.results;
-
-//         // Clear existing recommendations for the user
-//         await new Promise((resolve, reject) => {
-//             db.query('DELETE FROM recommendations WHERE user_id = ?', [userId], (err) => {
-//                 if (err) return reject(err);
-//                 resolve();
-//             });
-//         });
-
-//         // Process and store movie recommendations
-//         for (const movie of movies) {
-//             const movieDetailsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
-//                 params: { api_key: process.env.TMDB_API_KEY }
-//             });
-
-//             const keywordsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/keywords`, {
-//                 params: { api_key: process.env.TMDB_API_KEY }
-//             });
-
-//             const movieDetails = movieDetailsResponse.data;
-//             const keywords = keywordsResponse.data.keywords.map(k => k.name.toLowerCase()).join(', ');
-
-//             const genres = movieDetails.genres.map(g => g.name.toLowerCase()).join(', ');
-//             const tags = keywords.split(', ');
-
-//             // Only save relevant movies
-//             const isRelevantByGenres = genres.split(', ').some(g => sortedGenres.includes(g));
-//             const isRelevantByTags = tags.some(t => sortedTags.includes(t));
-
-//             if (isRelevantByGenres || isRelevantByTags) {
-//                 const sqlQuery = `
-//                     INSERT INTO recommendations (user_id, movie_id, title, description, genres, release_date, tags, keywords)
-//                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-//                     ON DUPLICATE KEY UPDATE 
-//                         title = VALUES(title), 
-//                         description = VALUES(description), 
-//                         genres = VALUES(genres), 
-//                         release_date = VALUES(release_date), 
-//                         tags = VALUES(tags),
-//                         keywords = VALUES(keywords)
-//                 `;
-
-//                 const values = [
-//                     userId,
-//                     movieDetails.id,
-//                     movieDetails.title,
-//                     movieDetails.overview,
-//                     genres,
-//                     movieDetails.release_date,
-//                     tags.join(', '),
-//                     keywords
-//                 ];
-
-//                 await new Promise((resolve, reject) => {
-//                     db.query(sqlQuery, values, (err) => {
-//                         if (err) return reject(err);
-//                         resolve();
-//                     });
-//                 });
-//             }
-//         }
-
-//         res.redirect("/movies/recommendations");
-//     } catch (error) {
-//         console.error('Error fetching recommendations:', error.message);
-//         next(error);
-//     }
-// });
