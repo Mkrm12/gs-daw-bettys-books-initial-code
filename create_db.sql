@@ -75,7 +75,7 @@ GRANT ALL PRIVILEGES ON bettys_movies.* TO 'appuser'@'localhost';
 
 -- Insert movies
 INSERT INTO movies (title, description, rating, release_date, genres, tags, keywords) VALUES
-('Free Guy', 'A bank teller discovers he is a background character in an open world video game.', 7.6, '2021-08-13', 'Comedy', 'Comedy', 'Bank Teller, Comedy, Video Game');
+('Free Guy', 'A bank teller discovers he is a background character in an open world video game.', 7.6, '2021-08-13', 'Comedy', 'Comedy', 'Bank Teller, Comedy, Video Game'),
 ('Black Widow', 'Natasha Romanoff confronts the darker parts of her ledger.', 10.0, '2021-07-09', 'Action', 'Marvel, Superhero', 'Natasha Romanoff, Marvel, Superhero'),
 ('Shang-Chi and the Legend of the Ten Rings', 'Shang-Chi must confront the past he thought he left behind.', 7.9, '2021-09-03', 'Action, Adventure', 'Marvel, Superhero, Adventure', 'Shang-Chi, Marvel, Superhero, Adventure'),
 ('Eternals', 'The Eternals, an immortal alien race, emerge from hiding.', 9.8, '2021-11-05', 'Fantasy', 'Marvel, Superhero, Fantasy', 'Eternals, Marvel, Superhero, Fantasy'),

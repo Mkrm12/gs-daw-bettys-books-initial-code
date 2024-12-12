@@ -123,7 +123,7 @@ router.post('/loggedin', (req, res, next) => {
                 req.session.username = user.username; // Store username
                 req.session.firstName = user.first_name; // Store firstName
 
-                res.redirect('/');  // Redirect to the home page after successful login
+                res.redirect('index.ejs');  // Redirect to the home page after successful login
             } else {
                 res.send('Invalid username or password.');
             }
