@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Favorite Movies</title>
+</head>
+<body>
+    <h1>Your Favorite Movies</h1>
+
+    <div class="favorites-container">
+      <% if (favoriteMovies.length > 0) { %>
+        <% favoriteMovies.forEach((movie) => { %>
+          <div class="favorite-movie">
+            <h3><%= movie.title %></h3>
+            <p><strong>Release Date:</strong> <%= movie.release_date %></p>
+            <p><strong>Tags:</strong> <%= movie.tags %></p>
+            <p><strong>Keywords:</strong> <%= movie.keywords %></p>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <p>You have no favorite movies.</p>
+      <% } %>
+    </div>
+
+    <footer>
+      <p>Want to go back? <a href="/movies/list">Movies List</a></p>
+    </footer>
+</body>
+</html>

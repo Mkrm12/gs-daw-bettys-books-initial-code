@@ -35,6 +35,9 @@ app.use((req, res, next) => {
     next();
 });
 
+
+
+  
 // Middleware to check if the user is logged in, if not, sets default values
 const optionalLogin = (req, res, next) => {
     if (req.session && req.session.userId) {
@@ -48,6 +51,24 @@ const optionalLogin = (req, res, next) => {
         next();
     }
 };
+
+app.get('/movies', async (req, res) => {
+    const userId = req.session.userId; // Assuming user session contains userId
+    const availableMovies = await getAvailableMovies(); // Fetch movies
+    let favoriteMovies = []; // Default empty array
+  
+    if (userId) {
+      favoriteMovies = await getUserFavoriteMovies(userId); // Fetch user's favorite movies
+    }
+  
+    res.render('list', {
+      shopData: { shopName: "Betty's Movies" },
+      firstName: req.session.firstName,
+      userId,
+      availableMovies,
+      favoriteMovies, // Pass favorite movies to the template
+    });
+  });
 
 // Set EJS as the templating engine
 app.set('view engine', 'ejs');

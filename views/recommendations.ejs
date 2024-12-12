@@ -1,118 +1,28 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recommendations - <%= shopData.shopName %></title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-        header {
-            background-color: #333;
-            color: #fff;
-            padding: 1em 2em;
-            text-align: center;
-        }
-        main {
-            padding: 2em;
-            max-width: 800px;
-            margin: 0 auto;
-            background: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            margin-bottom: 1em;
-            font-size: 1.5em;
-        }
-        form {
-            margin-bottom: 2em;
-        }
-        label {
-            display: block;
-            margin: 0.5em 0 0.2em;
-            font-weight: bold;
-        }
-        input[type="text"],
-        select,
-        button {
-            width: 100%;
-            padding: 0.8em;
-            margin-bottom: 1em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #007BFF;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            background: #f0f0f0;
-            margin: 0.5em 0;
-            padding: 1em;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        hr {
-            border: none;
-            border-top: 1px solid #ddd;
-            margin: 1em 0;
-        }
-    </style>
+    <title>Recommendations</title>
+    <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <header>
-        <h1>Recommendations - <%= shopData.shopName %></h1>
-    </header>
-    <main>
-        <p><strong>Welcome, <%= userName %>!</strong></p>
+    <h1>Recommendations for <%= username %></h1>
 
-        <!-- Recommendation Form -->
-        <form action="/movies/recommendations" method="GET">
-            <label for="search">Search:</label>
-            <input type="text" id="search" name="search" placeholder="Search for movies by genre or tag (e.g., action, sci-fi)">
-            
-            <label for="type">Search Type:</label>
-            <select id="type" name="type">
-                <option value="genre">Genre</option>
-                <option value="tag">Tag</option>
-            </select>
-
-            <button type="submit">Search</button>
-        </form>
-
-        <!-- Display Movies if Any -->
-        <% if (movies && movies.length > 0) { %>
-            <ul>
-                <% movies.forEach(movie => { %>
-                    <li>
-                        <strong>Title:</strong> <%= movie.title %><br />
-                        <strong>Genres:</strong> <%= movie.genres %><br />
-                        <strong>Release Date:</strong> <%= new Date(movie.release_date).toDateString() %><br />
-                        <strong>Description:</strong> <%= movie.description %><br />
-                        <strong>Tags:</strong> <%= movie.tags %>
-                    </li>
-                <% }) %>
-            </ul>
-        <% } else { %>
-            <p>No recommendations available. Please try searching for movies above!</p>
-        <% } %>
-        <!-- Link to go back to Home -->
-    <p>Want to go back? <a href="/">Home</a></p>
-    </main>
+    <% if (recommendations.length > 0) { %>
+        <h2>Based on your favorites, we recommend:</h2>
+        <ul>
+            <% recommendations.forEach(function(movie) { %>
+                <li>
+                    <h3><%= movie.title %></h3>
+                    <p>Genres: <%= movie.genres %></p>
+                    <p>Tags: <%= movie.tags %></p>
+                    <p>Keywords: <%= movie.keywords %></p>
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>No recommendations available based on your favorites.</p>
+    <% } %>
 </body>
 </html>

@@ -11,6 +11,9 @@
             const release_date = document.getElementById('release_date');
             const description = document.getElementById('description');
             const user = document.getElementById('user');
+            const genres = document.getElementById('genres');
+            const tags = document.getElementById('tags');
+            const keywords = document.getElementById('keywords');
 
             // Clear previous error messages
             document.querySelectorAll('.error').forEach(e => e.innerText = '');
@@ -43,6 +46,24 @@
             // Validate Description
             if (description.value.trim() === '') {
                 document.getElementById('description-error').innerText = 'Description is required';
+                isValid = false;
+            }
+
+            // Validate Genres (Optional)
+            if (genres.value && /[^a-zA-Z,\s]/.test(genres.value)) {
+                document.getElementById('genres-error').innerText = 'Genres can only contain letters, commas, and spaces';
+                isValid = false;
+            }
+
+            // Validate Tags (Optional)
+            if (tags.value && /[^a-zA-Z,\s]/.test(tags.value)) {
+                document.getElementById('tags-error').innerText = 'Tags can only contain letters, commas, and spaces';
+                isValid = false;
+            }
+
+            // Validate Keywords (Optional)
+            if (keywords.value && /[^a-zA-Z,\s]/.test(keywords.value)) {
+                document.getElementById('keywords-error').innerText = 'Keywords can only contain letters, commas, and spaces';
                 isValid = false;
             }
 
@@ -80,20 +101,32 @@
         <p style="color: red;" class="error" id="user-error"></p>
 
         <!-- Movie Title Field -->
-        <p>Movie Title: <input id="title" type="text" name="title" value="<%= previousData.title || '' %>"/></p>
+        <p>Movie Title: <input id="title" type="text" name="title" value="<%= previousData.title || '' %>" /></p>
         <p style="color: red;" class="error" id="title-error"></p>
 
         <!-- Rating Field -->
-        <p>Rating: <input id="rating" type="text" name="rating" value="<%= previousData.rating || '' %>"/></p>
+        <p>Rating: <input id="rating" type="text" name="rating" value="<%= previousData.rating || '' %>" /></p>
         <p style="color: red;" class="error" id="rating-error"></p>
 
         <!-- Release Date Field -->
-        <p>Release Date: <input id="release_date" type="date" name="release_date" value="<%= previousData.release_date || '' %>"/></p>
+        <p>Release Date: <input id="release_date" type="date" name="release_date" value="<%= previousData.release_date || '' %>" /></p>
         <p style="color: red;" class="error" id="release_date-error"></p>
 
         <!-- Description Field -->
         <p>Description: <textarea id="description" name="description"><%= previousData.description || '' %></textarea></p>
         <p style="color: red;" class="error" id="description-error"></p>
+
+        <!-- Genres Field (Optional) -->
+        <p>Genres: <input id="genres" type="text" name="genres" placeholder="e.g., Action, Adventure" value="<%= previousData.genres || '' %>" /></p>
+        <p style="color: red;" class="error" id="genres-error"></p>
+
+        <!-- Tags Field (Optional) -->
+        <p>Tags: <input id="tags" type="text" name="tags" placeholder="e.g., Epic, Heroic" value="<%= previousData.tags || '' %>" /></p>
+        <p style="color: red;" class="error" id="tags-error"></p>
+
+        <!-- Keywords Field (Optional) -->
+        <p>Keywords: <input id="keywords" type="text" name="keywords" placeholder="e.g., Magic, Adventure" value="<%= previousData.keywords || '' %>" /></p>
+        <p style="color: red;" class="error" id="keywords-error"></p>
 
         <!-- Submit Button -->
         <input type="submit" value="Add Movie" />

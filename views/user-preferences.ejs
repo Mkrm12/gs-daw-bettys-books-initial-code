@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Preferences</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .message {
+            color: red;
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .recommendation-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .recommendation-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+
+</head>
+
+
+
+
+<body>
+    <div class="container">
+        <h1>User Preferences</h1>
+
+        <% if (message) { %>
+            <div class="message"><%= message %></div>
+        <% } %>
+
+        <p>Welcome, <strong><%= username %></strong>!</p>
+        <p>You have <%= favorite_count %> favorite movies.</p>
+
+        <% if (favorite_titles) { %>
+            <div class="movie-list">
+                <% 
+                const titles = favorite_titles.split(',');
+                const descriptions = favorite_descriptions ? favorite_descriptions.split('|').map(item => item.trim()) : [];
+                const genres = favorite_genres ? favorite_genres.split('|').map(item => item.trim()) : [];
+                const tags = favorite_tags ? favorite_tags.split('|').map(item => item.trim()) : [];
+                const years = favorite_years ? favorite_years.split(',').map(item => item.trim()) : [];
+                const keywords = favorite_keywords ? favorite_keywords.split('|').map(item => item.trim()) : [];
+
+                for (let i = 0; i < titles.length; i++) { 
+                %>
+                    <div class="movie-box">
+                        <h3><%= titles[i] ? titles[i].trim() : '' %></h3>
+                        <p><strong>Description:</strong> <%= descriptions.length > i ? descriptions[i] : 'N/A' %></p>
+                        <p><strong>Genres:</strong> <%= genres.length > i ? genres[i].replace(/,/g, ', ') : 'N/A' %></p>
+                        <p><strong>Tags:</strong> <%= tags.length > i ? tags[i].replace(/,/g, ', ') : 'N/A' %></p>
+                        <p><strong>Release Year:</strong> <%= years.length > i ? years[i] : 'N/A' %></p>
+                        <p><strong>Keywords:</strong> <%= keywords.length > i ? keywords[i].replace(/,/g, ', ') : 'N/A' %></p>
+                    </div>
+                <% } %>
+            </div>
+        <% } else { %>
+            <p>No favorite movies found.</p>
+        <% } %>
+
+        <% if (favorite_count >= 4) { %>
+            <button class="recommendation-btn" onclick="window.location.href='/movies/recommendations';">Get Recommendations</button>
+        <% } else { %>
+            <button class="recommendation-btn" disabled>Get Recommendations</button>
+        <% } %>
+    </div>
+
+    <div class="container">
+        <h1>Recommendations for <%= username %></h1>
+
+        <% if (typeof recommendations !== 'undefined' && recommendations.length > 0) { %>
+            <h2>Based on your favorites, we recommend:</h2>
+            <ul>
+                <% recommendations.forEach(function(movie) { %>
+                    <li>
+                        <h3><%= movie.title %></h3>
+                        <p>Genres: <%= movie.genres %></p>
+                        <p>Tags: <%= movie.tags %></p>
+                        <p>Keywords: <%= movie.keywords %></p>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <p>No recommendations available based on your favorites.</p>
+        <% } %>
+    </div>
+</body>
+
+
+
+
+
+
+
+
+</html>
