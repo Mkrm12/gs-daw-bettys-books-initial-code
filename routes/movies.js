@@ -118,7 +118,7 @@ router.post(
                     shopData: { shopName: "Betty's Movies" }
                 });
             }
-            res.redirect('./movies/list');
+            res.redirect('./list');
         });
     }
 );
@@ -214,7 +214,7 @@ router.post('/favorite', (req, res) => {
             return res.status(500).send('Failed to add favorite.');
         }
 
-        res.redirect('./movies/list'); // Redirect back to the movie list
+        res.redirect('./list'); // Redirect back to the movie list
     });
 });
 
@@ -231,7 +231,7 @@ router.post('/unfavorite', (req, res) => {
             return res.status(500).send('Failed to remove favorite.');
         }
 
-        res.redirect('./movies/list'); // Redirect back to the movie list
+        res.redirect('./list'); // Redirect back to the movie list
     });
 });
 
@@ -272,7 +272,7 @@ router.post("/review", (req, res, next) => {
         }
 
         updateMovieRating(movieId);
-        res.redirect("./movies/list");
+        res.redirect("./list");
     });
 });
 
@@ -511,7 +511,7 @@ router.post('/add-movie', (req, res) => {
             return res.status(500).send('Failed to add movie.');
         }
 
-        res.redirect('./movies/latest'); // Redirect back to the random movies page
+        res.redirect('./latest'); // Redirect back to the random movies page
     });
 });
 
@@ -531,7 +531,7 @@ const googleApiKey = 'AIzaSyCgIPpczN_SP_qmAGfGCEDlOfAv7sQjYVY';
 const customSearchEngineId = '22622c00d685e4ccc'; // Replace with your Custom Search Engine ID
 
 // Recommendations route
-router.get('/recommendations', async (req, res, next) => {
+router.get('./recommendations', async (req, res, next) => {
     const userId = req.session.userId;
 
     if (!userId) {

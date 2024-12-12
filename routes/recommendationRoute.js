@@ -35,7 +35,7 @@ module.exports = router;
 
 
 // Recommendations route
-router.get('/recommendations/:userId', async (req, res, next) => {
+router.get('./recommendations/:userId', async (req, res, next) => {
     const userId = req.params.userId;
 
     // Fetch user preferences
