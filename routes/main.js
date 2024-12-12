@@ -26,10 +26,29 @@ router.get('/about',function(req, res, next){
     res.render('about.ejs')
 })
 
-// Route to render API Provision page 
-router.get('/api-provision', (req, res) => { 
-    res.render('apiProvision'); });
+// Middleware to check user ID
+function checkUserId(req, res, next) {
+    const userId = req.session.userId; // Assuming you pass the userId as a query parameter
 
+    if (userId && parseInt(userId) === 5) {
+        next(); // User ID 5 is allowed, proceed to the next middleware/route handler
+    } else {
+        res.status(403).send('Access restricted'); // Access denied for other users
+    }
+}
+
+// Route to render API Provision page with user ID check
+router.get('/api-provision', checkUserId, (req, res, next) => {
+    const query = 'SELECT id FROM users';
+
+    db.query(query, (err, results) => {
+        if (err) return next(err);
+
+        res.render('apiProvision', { users: results });
+    });
+});
+
+module.exports = router;
 
 // Export the router object so index.js can access it
 module.exports = router

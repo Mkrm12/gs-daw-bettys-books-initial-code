@@ -5,24 +5,39 @@
     <link rel="stylesheet" type="text/css" href="/main.css" />
 </head>
 <body>
-    <h1>Welcome to <%= shopData.shopName %></h1>
-    <% if (user) { %>
-        <p><a href="/users/logout">Logout</a></p>
-    <% } else { %>
-        <p><a href="/users/login">Login</a></p>
-    <% } %>
-    <p><strong>Welcome <%= userName %></strong></p> <!-- Displaying user info -->
-    <!-- Display movies list here -->
+    <div class="container">
+        <header>
+            <h1>Welcome to <%= shopData.shopName %></h1>
+            <% if (user) { %>
+                <div class="login-box">
+                    <p>Welcome <span class="welcome-text"><%= userName %></span></p> <!-- Displaying user info -->
+                    <p><a href="/users/logout">Logout</a></p>
+                </div>
+            <% } else { %>
+                <div class="login-box">
+                    <p>Welcome <span class="welcome-text">Guest</span></p>
+                    <p><a href="/users/login">Login</a></p>
+                </div>
+            <% } %>
+        </header>
 
-    <p><a href="about">About <%= shopData.shopName %></a></p>
-    <p><a href="movies/search">Search for movies</a></p>
-    <p><a href="movies/addmovie">Add a new movie</a></p>
-    <p><a href="movies/list">List movies</a></p>
-    <p><a href="users/register">Register with us</a></p>
-    <p><a href="movies/latest">Latest releases</a></p>
-    <p><a href="/movies/recommendations">Recommendations</a></p> <!-- Added link to recommendations -->
-    <p><a href="/movies/user-preferences">User-preferences</a></p>
-    <p><a href="/api-provision">API Provision</a></p> <!-- Added link to API Provision -->
+        <nav>
+            <p><a href="about">About <%= shopData.shopName %></a></p>
+            <p><a href="movies/search">Search for movies</a></p>
+            <p><a href="movies/addmovie">Add a new movie</a></p>
+            <p><a href="movies/list">List movies</a></p>
+            <p><a href="users/register">Register with us</a></p>
+            <p><a href="movies/latest">Latest releases</a></p>
+            <p><a href="/movies/recommendations">Recommendations</a></p>
+            <p><a href="/movies/user-preferences">User-preferences</a></p>
+            <p><a href="/api-provision">API Provision</a></p>
+        </nav>
+
+        <!-- Content area where movies list and other dynamic content will appear -->
+
+        <footer>
+            <p>&copy; 2023 <%= shopData.shopName %>. All rights reserved.</p>
+        </footer>
+    </div>
 </body>
-
 </html>

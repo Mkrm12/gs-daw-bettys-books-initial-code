@@ -2,22 +2,14 @@
 <html>
 <head>
     <title>User Preferences</title>
-    <style>
-        .movie-box {
-            border: 1px solid #ccc;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        .movie-box h3 {
-            margin-top: 0;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="/main2.css" />
 </head>
 <body>
     <div class="container">
-        <h1>User Preferences</h1>
+        <header>
+            <h1>User Preferences</h1>
+            <a href="/" class="home-link">Home</a>
+        </header>
 
         <% if (message) { %>
             <div class="message"><%= message %></div>
@@ -27,15 +19,17 @@
         <p>You have <%= favorite_count %> favorite movies.</p>
 
         <% if (preferences.length > 0) { %>
-            <div class="movie-list">
+            <div class="movies-container">
                 <% preferences.forEach(function(movie) { %>
                     <div class="movie-box">
-                        <h3><%= movie.favorite_titles ? movie.favorite_titles.trim() : 'Title not available' %></h3>
-                        <p><strong>Description:</strong> <%= movie.favorite_descriptions ? movie.favorite_descriptions : 'Description not available' %></p>
-                        <p><strong>Genres:</strong> <%= movie.favorite_genres ? movie.favorite_genres.replace(/,/g, ', ') : 'Genres not available' %></p>
-                        <p><strong>Tags:</strong> <%= movie.favorite_tags ? movie.favorite_tags.replace(/,/g, ', ') : 'Tags not available' %></p>
-                        <p><strong>Release Year:</strong> <%= movie.favorite_years ? movie.favorite_years : 'Year not available' %></p>
-                        <p><strong>Keywords:</strong> <%= movie.favorite_keywords ? movie.favorite_keywords.replace(/,/g, ', ') : 'Keywords not available' %></p>
+                        <h3 class="movie-title"><%= movie.favorite_titles ? movie.favorite_titles.trim() : 'Title not available' %></h3>
+                        <div class="movie-details">
+                            <p><strong>Description:</strong> <%= movie.favorite_descriptions ? movie.favorite_descriptions : 'Description not available' %></p>
+                            <p><strong>Genres:</strong> <%= movie.favorite_genres ? movie.favorite_genres.replace(/,/g, ', ') : 'Genres not available' %></p>
+                            <p><strong>Tags:</strong> <%= movie.favorite_tags ? movie.favorite_tags.replace(/,/g, ', ') : 'Tags not available' %></p>
+                            <p><strong>Release Year:</strong> <%= movie.favorite_years ? movie.favorite_years : 'Year not available' %></p>
+                            <p><strong>Keywords:</strong> <%= movie.favorite_keywords ? movie.favorite_keywords.replace(/,/g, ', ') : 'Keywords not available' %></p>
+                        </div>
                     </div>
                 <% }); %>
             </div>

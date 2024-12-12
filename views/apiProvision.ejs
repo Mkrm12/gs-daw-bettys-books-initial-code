@@ -2,39 +2,23 @@
 <html>
 <head>
     <title>API Provision</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            margin: 10px 0;
-        }
-        a {
-            color: #0066cc;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <a href="/" class="home-link">Home</a>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
 </head>
 <body>
     <h1>API Provision</h1>
     <ul>
-        <li><a href="http://localhost:8000/api/recommendations/1">User 1</a></li>
-        <li><a href="http://localhost:8000/api/recommendations/2">User 2</a></li>
-        <li><a href="http://localhost:8000/api/recommendations/3">User 3</a></li>
-        <li><a href="http://localhost:8000/api/recommendations/4">User 4</a></li>
-        <li><a href="http://localhost:8000/api/recommendations/5">User 5</a></li>
-        <li><a href="http://localhost:8000/api/recommendations/6">User 6</a></li>
+        <% if (users && users.length > 0) { %>
+            <% users.forEach(user => { %>
+                <li>
+                    <a href="http://localhost:8000/api/recommendations/<%= user.id %>">
+                        User <%= user.id %> - <%= user.username %>
+                    </a>
+                </li>
+            <% }) %>
+        <% } else { %>
+            <li>No users found.</li>
+        <% } %>
     </ul>
 </body>
 </html>

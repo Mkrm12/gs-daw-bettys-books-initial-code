@@ -295,16 +295,18 @@ function updateMovieRating(movieId) {
     });
 }
 
+
+
 router.get('/search', (req, res) => {
     res.render('search', { shopData: { shopName: "Betty's Movies" } });
 });
 
 router.get('/search_result', (req, res, next) => {
-    const { title, minRating, maxRating, reviewContent, descriptionContent, releaseYear, sortBy } = req.query;
+    const { title, minRating, maxRating, reviewContent, descriptionContent, releaseYear, sortBy, genres } = req.query;
 
     // Build the SQL query dynamically based on provided filters
     let sqlQuery = `
-        SELECT m.id, m.title, m.description, m.rating, m.release_date, COUNT(r.id) AS review_count
+        SELECT m.id, m.title, m.description, m.rating, m.release_date, m.genres, COUNT(r.id) AS review_count
         FROM movies m
         LEFT JOIN reviews r ON m.id = r.movie_id
         WHERE 1=1
@@ -335,6 +337,11 @@ router.get('/search_result', (req, res, next) => {
         sqlQuery += " AND YEAR(m.release_date) = ?";
         params.push(parseInt(releaseYear));
     }
+    if (genres) {
+        const genresArray = genres.split(',').map(genre => genre.trim());
+        sqlQuery += " AND (" + genresArray.map(() => "m.genres LIKE ?").join(" OR ") + ")";
+        params.push(...genresArray.map(genre => `%${genre}%`));
+    }
 
     // Add sorting based on user selection
     if (sortBy === 'mostReviews') {
@@ -357,6 +364,11 @@ router.get('/search_result', (req, res, next) => {
             // No movies matched the criteria
             return res.render('search_result', { shopData: { shopName: "Betty's Movies" }, movies: null });
         }
+
+        // Format the release date to show only the date part
+        results.forEach(movie => {
+            movie.release_date = new Date(movie.release_date).toDateString();
+        });
 
         res.render('search_result', { shopData: { shopName: "Betty's Movies" }, movies: results });
     });

@@ -5,9 +5,34 @@ const db = require('../db'); // Assuming you have a db module for database opera
 const googleApiKey = 'AIzaSyCgIPpczN_SP_qmAGfGCEDlOfAv7sQjYVY';
 const customSearchEngineId = '22622c00d685e4ccc'; // Replace with your Custom Search Engine ID
 
-// Route to render API Provision page 
-router.get('/api-provision', (req, res) => { 
-    res.render('apiProvision'); });
+
+
+
+// Middleware to check user ID
+function checkUserId(req, res, next) {
+    const userId = req.session.userId; // Assuming you pass the userId as a query parameter
+
+    if (userId && parseInt(userId) === 5) {
+        next(); // User ID 5 is allowed, proceed to the next middleware/route handler
+    } else {
+        res.status(403).send('Access restricted'); // Access denied for other users
+    }
+}
+
+// Route to render API Provision page with user ID check
+router.get('/api-provision', checkUserId, (req, res, next) => {
+    const query = 'SELECT id FROM users';
+
+    db.query(query, (err, results) => {
+        if (err) return next(err);
+
+        res.render('apiProvision', { users: results });
+    });
+});
+
+module.exports = router;
+
+
 
 // Recommendations route
 router.get('/recommendations/:userId', async (req, res, next) => {

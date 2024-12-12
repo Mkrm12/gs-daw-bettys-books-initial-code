@@ -86,53 +86,82 @@
     </script>
 </head>
 <body>
-    <h1>Add Movie to <%= shopData.shopName %></h1>
-    <!-- Display any validation errors -->
-    <% if (errors.length > 0) { %>
-        <ul style="color: red;">
-            <% errors.forEach(function(error) { %>
-                <li><%= error.msg %></li>
-            <% }); %>
-        </ul>
-    <% } %>
-    <form id="add-movie-form" method="POST" action="/movies/movieadded">
-        <!-- User Name Field -->
-        <p>Your Name: <input id="user" type="text" name="user" value="<%= previousData.user || userName %>" readonly /></p>
-        <p style="color: red;" class="error" id="user-error"></p>
+    <div class="container">
+        <header>
+            <h1>Add Movie to <%= shopData.shopName %></h1>
+            <a href="/" class="home-link">Home</a>
+        </header>
+        <!-- Display any validation errors -->
+        <% if (errors.length > 0) { %>
+            <ul style="color: red;">
+                <% errors.forEach(function(error) { %>
+                    <li><%= error.msg %></li>
+                <% }); %>
+            </ul>
+        <% } %>
+        <form id="add-movie-form" method="POST" action="/movies/movieadded" class="add-movie-form">
+            <!-- User Name Field -->
+            <p>
+                <label for="user">Your Name:</label>
+                <input id="user" type="text" name="user" value="<%= previousData.user || userName %>" readonly />
+            </p>
+            <p class="error" id="user-error"></p>
 
-        <!-- Movie Title Field -->
-        <p>Movie Title: <input id="title" type="text" name="title" value="<%= previousData.title || '' %>" /></p>
-        <p style="color: red;" class="error" id="title-error"></p>
+            <!-- Movie Title Field -->
+            <p>
+                <label for="title">Movie Title:</label>
+                <input id="title" type="text" name="title" value="<%= previousData.title || '' %>" />
+            </p>
+            <p class="error" id="title-error"></p>
 
-        <!-- Rating Field -->
-        <p>Rating: <input id="rating" type="text" name="rating" value="<%= previousData.rating || '' %>" /></p>
-        <p style="color: red;" class="error" id="rating-error"></p>
+            <!-- Rating Field -->
+            <p>
+                <label for="rating">Rating:</label>
+                <input id="rating" type="text" name="rating" value="<%= previousData.rating || '' %>" />
+            </p>
+            <p class="error" id="rating-error"></p>
 
-        <!-- Release Date Field -->
-        <p>Release Date: <input id="release_date" type="date" name="release_date" value="<%= previousData.release_date || '' %>" /></p>
-        <p style="color: red;" class="error" id="release_date-error"></p>
+            <!-- Release Date Field -->
+            <p>
+                <label for="release_date">Release Date:</label>
+                <input id="release_date" type="date" name="release_date" value="<%= previousData.release_date || '' %>" />
+            </p>
+            <p class="error" id="release_date-error"></p>
 
-        <!-- Description Field -->
-        <p>Description: <textarea id="description" name="description"><%= previousData.description || '' %></textarea></p>
-        <p style="color: red;" class="error" id="description-error"></p>
+            <!-- Description Field -->
+            <p>
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" style="width: calc(100% - 120px);"><%= previousData.description || '' %></textarea>
+            </p>
+            <p class="error" id="description-error"></p>
 
-        <!-- Genres Field (Optional) -->
-        <p>Genres: <input id="genres" type="text" name="genres" placeholder="e.g., Action, Adventure" value="<%= previousData.genres || '' %>" /></p>
-        <p style="color: red;" class="error" id="genres-error"></p>
+            <!-- Genres Field (Optional) -->
+            <p>
+                <label for="genres">Genres:</label>
+                <input id="genres" type="text" name="genres" placeholder="e.g., Action, Adventure" value="<%= previousData.genres || '' %>" />
+            </p>
+            <p class="error" id="genres-error"></p>
 
-        <!-- Tags Field (Optional) -->
-        <p>Tags: <input id="tags" type="text" name="tags" placeholder="e.g., Epic, Heroic" value="<%= previousData.tags || '' %>" /></p>
-        <p style="color: red;" class="error" id="tags-error"></p>
+            <!-- Tags Field (Optional) -->
+            <p>
+                <label for="tags">Tags:</label>
+                <input id="tags" type="text" name="tags" placeholder="e.g., Epic, Heroic" value="<%= previousData.tags || '' %>" />
+            </p>
+            <p class="error" id="tags-error"></p>
 
-        <!-- Keywords Field (Optional) -->
-        <p>Keywords: <input id="keywords" type="text" name="keywords" placeholder="e.g., Magic, Adventure" value="<%= previousData.keywords || '' %>" /></p>
-        <p style="color: red;" class="error" id="keywords-error"></p>
+            <!-- Keywords Field (Optional) -->
+            <p>
+                <label for="keywords">Keywords:</label>
+                <input id="keywords" type="text" name="keywords" placeholder="e.g., Magic, Adventure" value="<%= previousData.keywords || '' %>" />
+            </p>
+            <p class="error" id="keywords-error"></p>
 
-        <!-- Submit Button -->
-        <input type="submit" value="Add Movie" />
-    </form>
+            <!-- Submit Button -->
+            <input type="submit" value="Add Movie" />
+        </form>
 
-    <!-- Link to go back to Home -->
-    <p>Want to go back? <a href="/">Home</a></p>
+        <!-- Link to go back to Home -->
+        <p class="back-link">Want to go back? <a href="/">Home</a></p>
+    </div>
 </body>
 </html>
