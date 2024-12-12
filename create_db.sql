@@ -79,8 +79,7 @@ INSERT INTO movies (title, description, rating, release_date, genres, tags, keyw
 ('Black Widow', 'Natasha Romanoff confronts the darker parts of her ledger.', 10.0, '2021-07-09', 'Action', 'Marvel, Superhero', 'Natasha Romanoff, Marvel, Superhero'),
 ('Shang-Chi and the Legend of the Ten Rings', 'Shang-Chi must confront the past he thought he left behind.', 7.9, '2021-09-03', 'Action, Adventure', 'Marvel, Superhero, Adventure', 'Shang-Chi, Marvel, Superhero, Adventure'),
 ('Eternals', 'The Eternals, an immortal alien race, emerge from hiding.', 9.8, '2021-11-05', 'Fantasy', 'Marvel, Superhero, Fantasy', 'Eternals, Marvel, Superhero, Fantasy'),
-('Jungle Cruise', 'A riverboat captain and a scientist embark on a jungle adventure.', 6.6, '2021-07-30', 'Adventure', 'Adventure', 'Jungle, Adventure, Riverboat'),
-('Free Guy', 'A bank teller discovers he is a background character in an open world video game.', 7.6, '2021-08-13', 'Comedy', 'Comedy', 'Bank Teller, Comedy, Video Game');
+('Jungle Cruise', 'A riverboat captain and a scientist embark on a jungle adventure.', 6.6, '2021-07-30', 'Adventure', 'Adventure', 'Jungle, Adventure, Riverboat');
 
 -- Insert users
 INSERT INTO users (username, first_name, last_name, email, hashed_password) VALUES
