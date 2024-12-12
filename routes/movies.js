@@ -6,7 +6,7 @@ const axios = require('axios');
 // Middleware to check if the user is logged in
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        return res.redirect('/users/login');
+        return res.redirect('usr/416/users/login');
     } else {
         next();
     }
@@ -118,7 +118,7 @@ router.post(
                     shopData: { shopName: "Betty's Movies" }
                 });
             }
-            res.redirect('/movies/list');
+            res.redirect('usr/416/movies/list');
         });
     }
 );
@@ -214,7 +214,7 @@ router.post('/favorite', (req, res) => {
             return res.status(500).send('Failed to add favorite.');
         }
 
-        res.redirect('usr/416/movies/list'); // Redirect back to the movie list
+        res.redirect('/movies/list'); // Redirect back to the movie list
     });
 });
 
@@ -231,7 +231,7 @@ router.post('/unfavorite', (req, res) => {
             return res.status(500).send('Failed to remove favorite.');
         }
 
-        res.redirect('usr/416/movies/list'); // Redirect back to the movie list
+        res.redirect('/movies/list'); // Redirect back to the movie list
     });
 });
 
@@ -511,7 +511,7 @@ router.post('/add-movie', (req, res) => {
             return res.status(500).send('Failed to add movie.');
         }
 
-        res.redirect('usr/416/movies/latest'); // Redirect back to the random movies page
+        res.redirect('/movies/latest'); // Redirect back to the random movies page
     });
 });
 
