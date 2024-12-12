@@ -1,28 +1,56 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recommendations</title>
-    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .movie-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .movie-box h3 {
+            margin-top: 0;
+        }
+    </style>
 </head>
 <body>
-    <h1>Recommendations for <%= username %></h1>
+    <div class="container">
+        <h1>Recommendations for <%= username %></h1>
+        <h2>Tally of genres: <%= allGenres %></h2>
+        <h2>Top 2 favorite genres: <%= favoriteGenres %></h2>
 
-    <% if (recommendations.length > 0) { %>
-        <h2>Based on your favorites, we recommend:</h2>
-        <ul>
-            <% recommendations.forEach(function(movie) { %>
-                <li>
-                    <h3><%= movie.title %></h3>
-                    <p>Genres: <%= movie.genres %></p>
-                    <p>Tags: <%= movie.tags %></p>
-                    <p>Keywords: <%= movie.keywords %></p>
-                </li>
-            <% }); %>
-        </ul>
-    <% } else { %>
-        <p>No recommendations available based on your favorites.</p>
-    <% } %>
+        <h2>Our Recommendations:</h2>
+        <% if (dbRecommendations.length > 0) { %>
+            <div class="movie-list">
+                <% dbRecommendations.forEach(function(movie) { %>
+                    <div class="movie-box">
+                        <h3><%= movie.title %></h3>
+                        <p><strong>Description:</strong> <%= movie.description || 'No description available.' %></p>
+                        <p><strong>Genres:</strong> <%= movie.genres %></p>
+                        <p><strong>Tags:</strong> <%= movie.tags %></p>
+                        <p><strong>Keywords:</strong> <%= movie.keywords %></p>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <p>No recommendations found from our database.</p>
+        <% } %>
+
+        <h1>API Recommendations:</h1>
+        <% if (apiRecommendations.length > 0) { %>
+            <div class="movie-list">
+                <% apiRecommendations.forEach(function(resultSnippet) { %>
+                    <div class="movie-box">
+                        <p><strong>Query:</strong> <%= resultSnippet.query.slice(0, 100) %></p>
+                        <p><strong>Response:</strong> <%= resultSnippet.response.slice(0, 270) %></p>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <p>No recommendations found from the API.</p>
+        <% } %>
+    </div>
 </body>
 </html>

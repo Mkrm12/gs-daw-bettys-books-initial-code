@@ -1,73 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Preferences</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        .container {
-            width: 80%;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
+        .movie-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 10px 0;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .message {
-            color: red;
-            text-align: center;
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border: 1px solid #ddd;
-        }
-        th {
-            background-color: #f4f4f4;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .recommendation-btn {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            text-align: center;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        .recommendation-btn:disabled {
-            background-color: #ccc;
-            cursor: not-allowed;
+        .movie-box h3 {
+            margin-top: 0;
         }
     </style>
-
 </head>
-
-
-
-
 <body>
     <div class="container">
         <h1>User Preferences</h1>
@@ -79,27 +26,18 @@
         <p>Welcome, <strong><%= username %></strong>!</p>
         <p>You have <%= favorite_count %> favorite movies.</p>
 
-        <% if (favorite_titles) { %>
+        <% if (preferences.length > 0) { %>
             <div class="movie-list">
-                <% 
-                const titles = favorite_titles.split(',');
-                const descriptions = favorite_descriptions ? favorite_descriptions.split('|').map(item => item.trim()) : [];
-                const genres = favorite_genres ? favorite_genres.split('|').map(item => item.trim()) : [];
-                const tags = favorite_tags ? favorite_tags.split('|').map(item => item.trim()) : [];
-                const years = favorite_years ? favorite_years.split(',').map(item => item.trim()) : [];
-                const keywords = favorite_keywords ? favorite_keywords.split('|').map(item => item.trim()) : [];
-
-                for (let i = 0; i < titles.length; i++) { 
-                %>
+                <% preferences.forEach(function(movie) { %>
                     <div class="movie-box">
-                        <h3><%= titles[i] ? titles[i].trim() : '' %></h3>
-                        <p><strong>Description:</strong> <%= descriptions.length > i ? descriptions[i] : 'N/A' %></p>
-                        <p><strong>Genres:</strong> <%= genres.length > i ? genres[i].replace(/,/g, ', ') : 'N/A' %></p>
-                        <p><strong>Tags:</strong> <%= tags.length > i ? tags[i].replace(/,/g, ', ') : 'N/A' %></p>
-                        <p><strong>Release Year:</strong> <%= years.length > i ? years[i] : 'N/A' %></p>
-                        <p><strong>Keywords:</strong> <%= keywords.length > i ? keywords[i].replace(/,/g, ', ') : 'N/A' %></p>
+                        <h3><%= movie.favorite_titles ? movie.favorite_titles.trim() : 'Title not available' %></h3>
+                        <p><strong>Description:</strong> <%= movie.favorite_descriptions ? movie.favorite_descriptions : 'Description not available' %></p>
+                        <p><strong>Genres:</strong> <%= movie.favorite_genres ? movie.favorite_genres.replace(/,/g, ', ') : 'Genres not available' %></p>
+                        <p><strong>Tags:</strong> <%= movie.favorite_tags ? movie.favorite_tags.replace(/,/g, ', ') : 'Tags not available' %></p>
+                        <p><strong>Release Year:</strong> <%= movie.favorite_years ? movie.favorite_years : 'Year not available' %></p>
+                        <p><strong>Keywords:</strong> <%= movie.favorite_keywords ? movie.favorite_keywords.replace(/,/g, ', ') : 'Keywords not available' %></p>
                     </div>
-                <% } %>
+                <% }); %>
             </div>
         <% } else { %>
             <p>No favorite movies found.</p>
@@ -111,33 +49,5 @@
             <button class="recommendation-btn" disabled>Get Recommendations</button>
         <% } %>
     </div>
-
-    <div class="container">
-        <h1>Recommendations for <%= username %></h1>
-
-        <% if (typeof recommendations !== 'undefined' && recommendations.length > 0) { %>
-            <h2>Based on your favorites, we recommend:</h2>
-            <ul>
-                <% recommendations.forEach(function(movie) { %>
-                    <li>
-                        <h3><%= movie.title %></h3>
-                        <p>Genres: <%= movie.genres %></p>
-                        <p>Tags: <%= movie.tags %></p>
-                        <p>Keywords: <%= movie.keywords %></p>
-                    </li>
-                <% }); %>
-            </ul>
-        <% } else { %>
-            <p>No recommendations available based on your favorites.</p>
-        <% } %>
-    </div>
 </body>
-
-
-
-
-
-
-
-
 </html>

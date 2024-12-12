@@ -15,11 +15,22 @@ const redirectLogin = (req, res, next) => {
 
 
 
-const availableGenres = ['Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller'];
-const availableTags = ['Epic', 'Heroic', 'Magical', 'Survival', 'Romantic', 'Space', 'Suspenseful', 'Gritty', 'Lighthearted', 'Dark'];
+const availableGenres = [
+    'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller',
+    'Western', 'Musical', 'War', 'Historical', 'Biography', 'Crime', 'Family', 'Animation', 'Documentary', 'Sports'
+];
+const availableTags = [
+    'Epic', 'Heroic', 'Magical', 'Survival', 'Romantic', 'Space', 'Suspenseful', 'Gritty', 'Lighthearted', 'Dark',
+    'Intense', 'Emotional', 'Exciting', 'Mysterious', 'Heartwarming', 'Adventurous', 'Thrilling', 'Captivating', 'Dramatic'
+];
+const availableKeywords = [
+    'Adventure', 'Hero', 'Fight', 'Love', 'Space', 'Magic', 'Mystery', 'Horror', 'Thrill', 'Epic',
+    'Journey', 'Quest', 'Battle', 'Heroine', 'Fantasy', 'War', 'Challenge', 'Exploration', 'Escape', 'Discovery'
+];
 
-function getRandomItems(arr, num) {
-    const shuffled = arr.sort(() => 0.5 - Math.random());
+function getRandomUniqueItems(arr, num, existingItems = []) {
+    const filteredArr = arr.filter(item => !existingItems.includes(item));
+    const shuffled = filteredArr.sort(() => 0.5 - Math.random());
     return shuffled.slice(0, num).join(', ');
 }
 
@@ -83,10 +94,10 @@ router.post(
             });
         }
 
-        // Assign random genres and tags if not provided
-        const genres = req.body.genres || getRandomItems(availableGenres, 3);
-        const tags = req.body.tags || getRandomItems(availableTags, 3);
-        const keywords = req.body.keywords || '';
+        // Assign random genres, tags, and keywords if not provided and ensure no duplicates
+        const genres = req.body.genres || getRandomUniqueItems(availableGenres, 3);
+        const tags = req.body.tags || getRandomUniqueItems(availableTags, 3, genres.split(', '));
+        const keywords = req.body.keywords || getRandomUniqueItems(availableKeywords, 3, [...genres.split(', '), ...tags.split(', ')]);
 
         const sqlquery = "INSERT INTO movies (title, description, rating, release_date, genres, tags, keywords) VALUES (?, ?, ?, ?, ?, ?, ?)";
         const newRecord = [
@@ -122,7 +133,7 @@ router.get("/list", async (req, res, next) => {
 
     try {
         const sqlquery = `
-            SELECT m.id, m.title, m.description, m.rating, m.release_date, 
+            SELECT m.id, m.title, m.description, m.rating, m.release_date, m.genres,
                    r.user_id, r.rating AS review_rating, r.review_text, u.first_name,
                    uf.user_id IS NOT NULL AS isFavorited
             FROM movies m
@@ -148,6 +159,7 @@ router.get("/list", async (req, res, next) => {
                     description: row.description,
                     rating: row.rating,
                     release_date: row.release_date,
+                    genres: row.genres, // Ensure genres are fetched and stored
                     isFavorited: !!row.isFavorited,
                     reviews: [],
                 };
@@ -178,6 +190,7 @@ router.get("/list", async (req, res, next) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
 
 
 
@@ -350,34 +363,85 @@ router.get('/search_result', (req, res, next) => {
 });
 
 
-// TMDB API configuration
+
+
 const TMDB_API_KEY = 'b4c8f4d68cafb98598fa69cd18caccc3';
 const TMDB_AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJiNGM4ZjRkNjhjYWZiOTg1OThmYTY5Y2QxOGNhY2NjMyIsIm5iZiI6MTczMzc1MDQzNS42NzgwMDAyLCJzdWIiOiI2NzU2ZWVhMzllMTJmYTI1ZThmYmUwZmEiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Z7S4vYgb4uaChz0Tf1XFXLlfE4kcT1A4ybZb1t9aSuM';
 
-// Route to fetch and display the latest movies from TMDb and database
+const getRandomPage = () => Math.floor(Math.random() * 500) + 1;
+
+// Helper function to limit text to a certain number of words
+const limitText = (text, wordLimit) => {
+    if (!text) return '';
+    const words = text.split(' ');
+    return words.length > wordLimit ? words.slice(0, wordLimit).join(' ') + '...' : text;
+};
+
+// Route to fetch and display random movies from TMDb and database
 router.get("/latest", async (req, res, next) => {
     const userId = req.session.userId || null;
     const userName = req.session.firstName || "Guest";
 
     try {
-        // Fetch the latest movies from TMDb
-        const response = await axios.get('https://api.themoviedb.org/3/movie/now_playing', {
+        // Fetch random movies from TMDb
+        const randomPage = getRandomPage();
+        const response = await axios.get('https://api.themoviedb.org/3/movie/popular', {
             headers: {
                 'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
             },
             params: {
-                'api_key': TMDB_API_KEY
+                'api_key': TMDB_API_KEY,
+                'page': randomPage
             }
         });
 
-        const latestMoviesFromAPI = response.data.results.slice(0, 5).map(movie => ({
-            title: movie.title,
-            releaseDate: movie.release_date
-        }));
+        const latestMoviesFromAPI = await Promise.all(
+            response.data.results.slice(0, 5).map(async movie => {
+                const movieDetailsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
+                    },
+                    params: {
+                        'api_key': TMDB_API_KEY
+                    }
+                });
+
+                const keywordsResponse = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/keywords`, {
+                    headers: {
+                        'Authorization': `Bearer ${TMDB_AUTH_TOKEN}`
+                    },
+                    params: {
+                        'api_key': TMDB_API_KEY
+                    }
+                });
+
+                const movieDetails = movieDetailsResponse.data;
+                const keywords = keywordsResponse.data.keywords.map(keyword => keyword.name).join(', ');
+
+                return {
+                    id: movieDetails.id,
+                    title: movieDetails.title || 'Untitled',
+                    description: limitText(movieDetails.overview, 50) || 'No description available.',
+                    rating: movieDetails.vote_average || 'N/A',
+                    release_date: movieDetails.release_date || 'N/A',
+                    genres: movieDetails.genres.map(genre => genre.name).join(', ') || 'N/A',
+                    tags: movieDetails.tagline || 'No tags available.',
+                    keywords: limitText(keywords, 50) || 'No keywords available.'
+                };
+            })
+        );
+
+        // Filter out movies with any field having 'N/A'
+        const filteredMoviesFromAPI = latestMoviesFromAPI.filter(movie => 
+            movie.title !== 'Untitled' && movie.description !== 'No description available.' && 
+            movie.rating !== 'N/A' && movie.release_date !== 'N/A' && 
+            movie.genres !== 'N/A' && movie.tags !== 'No tags available.' && 
+            movie.keywords !== 'No keywords available.'
+        );
 
         // Fetch the latest five movie entries from your database
         const sqlQuery = `
-            SELECT title, description, release_date
+            SELECT title, description, rating, release_date, genres, tags, keywords
             FROM movies
             ORDER BY id DESC
             LIMIT 5
@@ -390,12 +454,16 @@ router.get("/latest", async (req, res, next) => {
 
             const latestMoviesFromDB = dbResults.map(movie => ({
                 title: movie.title,
-                releaseDate: movie.release_date,
-                description: movie.description
+                description: movie.description,
+                rating: movie.rating,
+                release_date: movie.release_date,
+                genres: movie.genres,
+                tags: movie.tags,
+                keywords: movie.keywords
             }));
 
             res.render("latest", {
-                latestMoviesFromAPI: latestMoviesFromAPI,
+                latestMoviesFromAPI: filteredMoviesFromAPI,
                 latestMoviesFromDB: latestMoviesFromDB,
                 shopData: { shopName: "Betty's Movies" },
                 userName,  // Pass userName to the template
@@ -403,27 +471,68 @@ router.get("/latest", async (req, res, next) => {
             });
         });
     } catch (error) {
-        console.error('Error fetching latest movies:', error.message);
+        console.error('Error fetching random movies:', error.message);
         next(error);
     }
 });
 
+// Route to add movie to database
+router.post('/add-movie', (req, res) => {
+    const { title, description, rating, release_date, genres, tags, keywords } = req.body;
+
+    // Ensure all fields are present
+    if (!title || title === 'Untitled' || !description || description === 'No description available.' || 
+        !rating || rating === 'N/A' || !release_date || release_date === 'N/A' || 
+        !genres || genres === 'N/A' || !tags || tags === 'No tags available.' || 
+        !keywords || keywords === 'No keywords available.') {
+        return res.status(400).send('Failed to add movie. Missing or invalid required fields.');
+    }
+
+    const sqlQuery = `
+        INSERT INTO movies (title, description, rating, release_date, genres, tags, keywords)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(sqlQuery, [title, description, rating, release_date, genres, tags, keywords], (err, result) => {
+        if (err) {
+            console.error('Error adding movie to database:', err);
+            return res.status(500).send('Failed to add movie.');
+        }
+
+        res.redirect('/movies/latest'); // Redirect back to the random movies page
+    });
+});
+
+module.exports = router;
+
+
+
+
+
+
+
+
+
+
+
+const googleApiKey = 'AIzaSyCgIPpczN_SP_qmAGfGCEDlOfAv7sQjYVY';
+const customSearchEngineId = '22622c00d685e4ccc'; // Replace with your Custom Search Engine ID
 
 // Recommendations route
-router.get('/recommendations', (req, res, next) => {
+router.get('/recommendations', async (req, res, next) => {
     const userId = req.session.userId;
 
     if (!userId) {
         return res.status(401).json({ error: "User not logged in." });
     }
 
-    // Fetch the user's favorite genres, tags, keywords, etc.
+    // Fetch user preferences
     const query = `
         SELECT u.username,
-               GROUP_CONCAT(DISTINCT m.genres SEPARATOR '|') AS favorite_genres,
-               GROUP_CONCAT(DISTINCT m.tags SEPARATOR '|') AS favorite_tags,
-               GROUP_CONCAT(DISTINCT m.keywords SEPARATOR '|') AS favorite_keywords,
-               GROUP_CONCAT(DISTINCT m.id SEPARATOR ',') AS favorite_movie_ids
+               GROUP_CONCAT(m.genres SEPARATOR '|') AS favorite_genres,
+               GROUP_CONCAT(m.tags SEPARATOR '|') AS favorite_tags,
+               GROUP_CONCAT(m.keywords SEPARATOR '|') AS favorite_keywords,
+               GROUP_CONCAT(m.id SEPARATOR ',') AS favorite_movie_ids
         FROM users u
         JOIN user_favorites uf ON u.id = uf.user_id
         JOIN movies m ON uf.movie_id = m.id
@@ -431,57 +540,82 @@ router.get('/recommendations', (req, res, next) => {
         GROUP BY u.username;
     `;
 
-    db.query(query, [userId], (err, results) => {
+    db.query(query, [userId], async (err, results) => {
         if (err) return next(err);
 
         const preferences = results.length ? results[0] : null;
         const genres = preferences.favorite_genres ? preferences.favorite_genres.split('|') : [];
+
+        // Normalize and count genres
+        const genreCounts = genres
+            .flatMap(genre => genre.split(',').map(g => g.trim().toLowerCase()))
+            .reduce((acc, genre) => {
+                acc[genre] = (acc[genre] || 0) + 1;
+                return acc;
+            }, {});
+
+        // Get all genres with their counts
+        const allGenres = Object.keys(genreCounts).map(genre => `${genre} (${genreCounts[genre]})`);
+
+        // Get the top 2 most frequent genres
+        const sortedGenres = Object.keys(genreCounts)
+            .sort((a, b) => genreCounts[b] - genreCounts[a]);
+        const topGenres = sortedGenres.slice(0, 2);
+
         const tags = preferences.favorite_tags ? preferences.favorite_tags.split('|') : [];
         const keywords = preferences.favorite_keywords ? preferences.favorite_keywords.split('|') : [];
         const favoriteMovieIds = preferences.favorite_movie_ids ? preferences.favorite_movie_ids.split(',') : [];
 
-        // Create a frequency map for each category
-        const genreFrequency = countFrequency(genres);
-        const tagFrequency = countFrequency(tags);
-        const keywordFrequency = countFrequency(keywords);
-
-        // Get the most frequent genre, tag, and keyword
-        const mostFrequentGenre = getMostFrequent(genreFrequency);
-        const mostFrequentTag = getMostFrequent(tagFrequency);
-        const mostFrequentKeyword = getMostFrequent(keywordFrequency);
-
-        // Query for movie recommendations based on the most frequent genres, tags, and keywords, excluding favorite movies
+        // Query for recommendations based on top genres
+        const genreConditions = topGenres.map(genre => `m.genres LIKE ?`).join(' OR ');
         const recommendationQuery = `
-            SELECT m.id, m.title, m.genres, m.tags, m.keywords
+            SELECT m.id, m.title, m.genres, m.tags, m.keywords, m.description
             FROM movies m
-            WHERE (m.genres LIKE ? OR m.tags LIKE ? OR m.keywords LIKE ?)
+            WHERE (${genreConditions})
               AND m.id NOT IN (?)
+            LIMIT 10
         `;
 
-        db.query(recommendationQuery, [`%${mostFrequentGenre}%`, `%${mostFrequentTag}%`, `%${mostFrequentKeyword}%`, favoriteMovieIds], (err, recommendations) => {
+        const queryParams = [
+            ...topGenres.map(genre => `%${genre}%`),
+            favoriteMovieIds
+        ];
+
+        db.query(recommendationQuery, queryParams, async (err, dbRecommendations) => {
             if (err) return next(err);
+
+            // Fetch API recommendations
+            let apiRecommendations = [];
+            try {
+                const apiResponse = await axios.get(`https://www.googleapis.com/customsearch/v1`, {
+                    params: {
+                        key: googleApiKey,
+                        cx: customSearchEngineId,
+                        q: `top ${topGenres.join(', ')} movies`,
+                        num: 3
+                    }
+                });
+
+                apiRecommendations = apiResponse.data.items?.map(item => ({
+                    query: item.title.slice(0, 100),
+                    response: item.snippet.slice(0, 270)
+                })) || [];
+            } catch (error) {
+                console.error('Error fetching API recommendations:', error.message);
+            }
 
             res.render('recommendations', {
                 username: preferences.username,
-                recommendations: recommendations
+                allGenres: allGenres.join(', '),
+                favoriteGenres: topGenres.join(', '), // Only top 2 distinct genres
+                dbRecommendations,
+                apiRecommendations
             });
         });
     });
 });
 
-// Helper function to count frequency of items in an array
-function countFrequency(arr) {
-    const freq = {};
-    arr.forEach(item => {
-        freq[item] = (freq[item] || 0) + 1;
-    });
-    return freq;
-}
-
-// Helper function to get the most frequent item
-function getMostFrequent(freqMap) {
-    return Object.keys(freqMap).reduce((a, b) => freqMap[a] > freqMap[b] ? a : b);
-}
+module.exports = router;
 
 
 
@@ -489,7 +623,7 @@ function getMostFrequent(freqMap) {
 
 
 
-/// User preferences route
+// User preferences route
 router.get('/user-preferences', (req, res, next) => {
     const userId = req.session.userId;
 
@@ -499,46 +633,45 @@ router.get('/user-preferences', (req, res, next) => {
 
     const query = `
         SELECT u.username,
-               GROUP_CONCAT(DISTINCT m.title ORDER BY m.id) AS favorite_titles,
-               GROUP_CONCAT(DISTINCT m.genres ORDER BY m.id SEPARATOR '|') AS favorite_genres,
-               GROUP_CONCAT(DISTINCT m.tags ORDER BY m.id SEPARATOR '|') AS favorite_tags,
-               GROUP_CONCAT(DISTINCT m.release_date ORDER BY m.id SEPARATOR ',') AS favorite_years,
-               GROUP_CONCAT(DISTINCT m.description ORDER BY m.id SEPARATOR '|') AS favorite_descriptions,
-               GROUP_CONCAT(DISTINCT m.keywords ORDER BY m.id SEPARATOR '|') AS favorite_keywords,
-               COUNT(m.id) AS favorite_count
+               m.title AS favorite_titles,
+               m.genres AS favorite_genres,
+               m.tags AS favorite_tags,
+               m.release_date AS favorite_years,
+               m.description AS favorite_descriptions,
+               m.keywords AS favorite_keywords
         FROM users u
-        JOIN user_favorites uf ON u.id = uf.user_id
-        JOIN movies m ON uf.movie_id = m.id
+        LEFT JOIN user_favorites uf ON u.id = uf.user_id
+        LEFT JOIN movies m ON uf.movie_id = m.id
         WHERE u.id = ?
-        GROUP BY u.username;
+        ORDER BY uf.id;
     `;
 
     db.query(query, [userId], (err, results) => {
         if (err) return next(err);
 
-        const preferences = results.length ? results[0] : null;
+        const preferences = results.length ? results : [];
 
         // Define the message
         let message = '';
-        if (preferences.favorite_count < 4) {
-            message = `You need at least 4 favorite movies to get recommendations. You have ${preferences.favorite_count}.`;
+        if (preferences.length && preferences.length < 4) {
+            message = `You need at least 4 favorite movies to get recommendations. You have ${preferences.length}.`;
+        } else if (preferences.length === 0) {
+            message = `You have no favorite movies. Please add at least 4 favorite movies to get recommendations.`;
         }
 
         res.render('user-preferences', {
-            username: preferences?.username,
-            favorite_titles: preferences?.favorite_titles || "",
-            favorite_genres: preferences?.favorite_genres || "",
-            favorite_tags: preferences?.favorite_tags || "",
-            favorite_years: preferences?.favorite_years || "",
-            favorite_descriptions: preferences?.favorite_descriptions || "",
-            favorite_keywords: preferences?.favorite_keywords || "",
-            favorite_count: preferences.favorite_count,
+            username: preferences.length ? preferences[0].username : '',
+            preferences,
+            favorite_count: preferences.length,
             message  // Pass the message variable to the template
         });
     });
 });
 
 module.exports = router;
+
+
+
 
 
 
