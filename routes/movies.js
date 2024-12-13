@@ -6,7 +6,7 @@ const axios = require('axios');
 // Middleware to check if the user is logged in
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        return res.redirect('./users/login');
+        return res.redirect('/usr/416/users/login');
     } else {
         next();
     }
