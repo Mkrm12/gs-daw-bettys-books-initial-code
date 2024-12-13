@@ -6,7 +6,7 @@ const axios = require('axios');
 // Middleware to check if the user is logged in
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        return res.redirect('/users/login');
+        return res.redirect('./users/login');
     } else {
         next();
     }
@@ -531,7 +531,7 @@ const googleApiKey = 'AIzaSyCgIPpczN_SP_qmAGfGCEDlOfAv7sQjYVY';
 const customSearchEngineId = '22622c00d685e4ccc'; // Replace with your Custom Search Engine ID
 
 // Recommendations route
-router.get('/movies/recommendations', async (req, res, next) => {
+router.get('/recommendations', async (req, res, next) => {
     const userId = req.session.userId;
 
     if (!userId) {
