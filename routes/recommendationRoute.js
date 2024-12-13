@@ -1,17 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
-const db = require('../db'); // Assuming you have a db module for database operations
+const db = require('../db'); 
 const googleApiKey = 'AIzaSyCgIPpczN_SP_qmAGfGCEDlOfAv7sQjYVY';
-const customSearchEngineId = '22622c00d685e4ccc'; // Replace with your Custom Search Engine ID
+const customSearchEngineId = '22622c00d685e4ccc'; 
 
 
 
 
 // Middleware to check user ID
 function checkUserId(req, res, next) {
-    const userId = req.session.userId; // Assuming you pass the userId as a query parameter
-
+    const userId = req.session.userId; 
     if (userId && parseInt(userId) === 5) {
         next(); // User ID 5 is allowed, proceed to the next middleware/route handler
     } else {

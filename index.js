@@ -64,7 +64,7 @@ app.locals.shopData = { shopName: "Betty's Movies" };
 const mainRoutes = require("./routes/main");
 app.use('/', mainRoutes);
 // Load the route handler for /api-provision
-app.use('/api-provision', mainRoutes); // Assuming recommendationRoute has the new route
+app.use('/api-provision', mainRoutes); 
 
 // Load the route handlers for /users
 const usersRoutes = require('./routes/users');
@@ -75,7 +75,7 @@ const moviesRoutes = require('./routes/movies');
 app.use('/movies', moviesRoutes);
 
 // Load the route handler for /api
-const recommendationRoute = require('./routes/recommendationRoute'); // Ensure this is the correct path
+const recommendationRoute = require('./routes/recommendationRoute'); 
 app.use('/api', recommendationRoute);
 
 

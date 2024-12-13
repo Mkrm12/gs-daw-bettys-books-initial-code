@@ -6,7 +6,7 @@ const axios = require('axios');
 // Middleware to check if the user is logged in
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        return res.redirect('/usr/416/users/login');
+        return res.redirect('/usr/416/ users/login');
     } else {
         next();
     }
@@ -14,7 +14,7 @@ const redirectLogin = (req, res, next) => {
 
 
 
-
+// random genres if people dont input any when addig movies
 const availableGenres = [
     'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller',
     'Western', 'Musical', 'War', 'Historical', 'Biography', 'Crime', 'Family', 'Animation', 'Documentary', 'Sports'
@@ -41,7 +41,7 @@ router.get("/addmovie", redirectLogin, (req, res) => {
         errors: [], 
         previousData: {}, 
         shopData: { shopName: "Betty's Movies" },
-        userName  // Pass userName to the template
+        userName  
     });
 });
 
@@ -126,8 +126,19 @@ router.post(
 
 
 
+
 // Route to list all movies with their reviews
-router.get("/list", async (req, res, next) => {
+router.get("/list", [
+    check('rating').optional().matches(/^\d+(\.\d{1,2})?$/).withMessage('Invalid rating format'),
+    check('title').trim().escape(),
+    check('description').trim().escape(),
+    check('review_text').trim().escape()
+], async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
     const userId = req.session.userId || null;
     const userName = req.session.firstName || "Guest";
 
@@ -155,11 +166,11 @@ router.get("/list", async (req, res, next) => {
             if (!movies[row.id]) {
                 movies[row.id] = {
                     id: row.id,
-                    title: row.title,
-                    description: row.description,
+                    title: sanitize(row.title),
+                    description: sanitize(row.description),
                     rating: row.rating,
                     release_date: row.release_date,
-                    genres: row.genres, // Ensure genres are fetched and stored
+                    genres: sanitize(row.genres),
                     isFavorited: !!row.isFavorited,
                     reviews: [],
                 };
@@ -167,9 +178,9 @@ router.get("/list", async (req, res, next) => {
             if (row.review_text) {
                 movies[row.id].reviews.push({
                     userId: row.user_id,
-                    userName: row.first_name,
+                    userName: sanitize(row.first_name),
                     rating: row.review_rating,
-                    comment: row.review_text,
+                    comment: sanitize(row.review_text),
                 });
             }
         });
@@ -179,7 +190,7 @@ router.get("/list", async (req, res, next) => {
         // Render the page with updated movie data, favorite status, and user info
         res.render("list", {
             availableMovies: Object.values(movies),
-            favoriteMovies, // Add this line for the movies favorited by the user
+            favoriteMovies, 
             shopData: { shopName: "Betty's Movies" },
             userId: userId,
             firstName: userName,
@@ -190,6 +201,18 @@ router.get("/list", async (req, res, next) => {
         res.status(500).send('Internal Server Error');
     }
 });
+
+// Function to sanitize input to prevent XSS
+function sanitize(input) {
+    return input.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+}
+
+module.exports = router;
+
 
 
 
@@ -528,7 +551,7 @@ module.exports = router;
 
 
 const googleApiKey = 'AIzaSyCgIPpczN_SP_qmAGfGCEDlOfAv7sQjYVY';
-const customSearchEngineId = '22622c00d685e4ccc'; // Replace with your Custom Search Engine ID
+const customSearchEngineId = '22622c00d685e4ccc'; 
 
 // Recommendations route
 router.get('/recommendations', async (req, res, next) => {

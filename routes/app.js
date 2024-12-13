@@ -9,7 +9,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Session management
 app.use(session({
-    secret: 'somerandomstuff', // Choose a secure secret for production
+    secret: 'somerandomstuff', 
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -25,7 +25,7 @@ app.use((req, res, next) => {
         res.locals.user = {
             userId: req.session.userId,
             username: req.session.username,
-            firstName: req.session.firstName // Ensure firstName is included
+            firstName: req.session.firstName // Ensures firstName is included
         };
     } else {
         res.locals.user = null;  // No user logged in
@@ -52,23 +52,6 @@ const optionalLogin = (req, res, next) => {
     }
 };
 
-app.get('/movies', async (req, res) => {
-    const userId = req.session.userId; // Assuming user session contains userId
-    const availableMovies = await getAvailableMovies(); // Fetch movies
-    let favoriteMovies = []; // Default empty array
-  
-    if (userId) {
-      favoriteMovies = await getUserFavoriteMovies(userId); // Fetch user's favorite movies
-    }
-  
-    res.render('list', {
-      shopData: { shopName: "Betty's Movies" },
-      firstName: req.session.firstName,
-      userId,
-      availableMovies,
-      favoriteMovies, // Pass favorite movies to the template
-    });
-  });
 
 // Set EJS as the templating engine
 app.set('view engine', 'ejs');
@@ -81,7 +64,7 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'appuser',
     password: 'app2027',
-    database: 'bettys_movies' // Updated database name
+    database: 'bettys_movies' 
 });
 
 db.connect((err) => {
@@ -99,8 +82,6 @@ app.use('/', mainRoutes);
 const usersRoutes = require('./routes/users');
 app.use('/users', usersRoutes);
 
-const moviesRoutes = require('./routes/movies'); // Updated route for movies
-app.use('/movies', moviesRoutes);
 
 // Start the server
 app.listen(port, () => {

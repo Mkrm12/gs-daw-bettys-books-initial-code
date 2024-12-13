@@ -28,7 +28,7 @@ router.get('/about',function(req, res, next){
 
 // Middleware to check user ID
 function checkUserId(req, res, next) {
-    const userId = req.session.userId; // Assuming you pass the userId as a query parameter
+    const userId = req.session.userId; 
 
     if (userId && parseInt(userId) === 5) {
         next(); // User ID 5 is allowed, proceed to the next middleware/route handler
