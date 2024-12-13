@@ -123,7 +123,7 @@ router.post('/loggedin', (req, res, next) => {
                 req.session.username = user.username; // Store username
                 req.session.firstName = user.first_name; // Store firstName
 
-                res.redirect('./');  // Redirect to the home page after successful login
+                res.redirect('/usr/416/');  // Redirect to the correct home page URL
             } else {
                 res.send('Invalid username or password.');
             }
@@ -138,7 +138,7 @@ router.get('/logout', redirectLogin, (req, res) => {
         if (err) {
             return res.redirect('index.ejs');
         }
-        res.redirect('/');
+        res.redirect('/usr/416/');  // Redirect to the correct home page URL
     });
 });
 
